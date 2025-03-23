@@ -1,0 +1,1544 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("ENV_DATABASE_URL")
+}
+
+model AppDelivery {
+  Id            String    @id @db.Char(36)
+  VersaoAndroid String?   @db.VarChar(20)
+  VersaoIOS     String?   @db.VarChar(20)
+  AppName       String?   @db.VarChar(50)
+  CriadoEm      DateTime  @db.DateTime(6)
+  AlteradoEm    DateTime? @db.DateTime(6)
+}
+
+model AreasEntrega {
+  Id               String            @id @db.Char(36)
+  RestauranteId    String?           @db.Char(36)
+  TempoEntrega     Int
+  CriadoEm         DateTime          @db.DateTime(6)
+  AlteradoEm       DateTime?         @db.DateTime(6)
+  Status           Int
+  Nome             String?           @db.LongText
+  ValorMinIsencao  Float             @default(0)
+  TaxaEntrega      Float             @default(0)
+  TaxasDiferentes  Boolean           @default(false)
+  ViewDeliveryTime Boolean?          @default(dbgenerated("b'1'")) @db.Bit(1)
+  Restaurantes     Restaurantes?     @relation(fields: [RestauranteId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_RESTAURANTES_AREENTREGA_RESTAURANTE_ID")
+  HorariosEntrega  HorariosEntrega[]
+  Pedidos          Pedidos[]
+  coordenadas      coordenadas[]
+
+  @@index([RestauranteId], map: "IX_AreasEntrega_RestauranteId")
+}
+
+model BordasMassasPizza {
+  Id             String           @id @db.Char(36)
+  CategoriaId    String           @db.Char(36)
+  Nome           String?          @db.LongText
+  Preco          Float
+  CodigoPDV      String?          @db.LongText
+  Status         Boolean          @db.Bit(1)
+  CriadoEm       DateTime         @db.DateTime(6)
+  AlteradoEm     DateTime?        @db.DateTime(6)
+  Categorias     Categorias       @relation(fields: [CategoriaId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_CATEGORIAS_BORDASMASSAPIZZA_CATEGORIAID")
+  PedidoSubItens PedidoSubItens[]
+
+  @@index([CategoriaId], map: "IX_BordasMassasPizza_CategoriaId")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Campanha {
+  Id                String              @id @db.Char(36)
+  LojaId            String              @db.Char(36)
+  StatusId          Int
+  Nome              String              @db.VarChar(50)
+  Mensagem          String              @db.VarChar(5000)
+  UrlImagem         String?             @db.VarChar(255)
+  QuantidadeAlcance Int
+  QuantidadeEnviado Int?
+  QuantidadeErro    Int?
+  Perfil            String              @db.VarChar(50)
+  CriadoEm          DateTime?           @db.DateTime(6)
+  InicioEnvio       DateTime            @db.DateTime(6)
+  TerminoEnvio      DateTime?           @db.DateTime(6)
+  Restaurantes      Restaurantes        @relation(fields: [LojaId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_RESTAURANTES_CAMPANHA_LOJAID")
+  StatusCampanha    StatusCampanha      @relation(fields: [StatusId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_STATUSCAMPANHA_CAMPANHA_STATUSID")
+  ListaDistribuicao ListaDistribuicao[]
+
+  @@index([LojaId], map: "FK_RESTAURANTES_CAMPANHA_LOJAID_IDX")
+  @@index([StatusId], map: "FK_STATUSCAMPANHA_CAMPANHA_STATUSID_IDX")
+  @@index([InicioEnvio, TerminoEnvio], map: "IDX_CAMPANHA_INICIO_TERMINIO_ENVIO")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model CardapioCategorias {
+  Id               String          @id @db.Char(36)
+  CriadoEm         DateTime        @db.DateTime(6)
+  AlteradoEm       DateTime?       @db.DateTime(6)
+  Nome             String?         @db.LongText
+  CardapioId       String          @db.Char(36)
+  Ativo            Boolean         @default(true)
+  SempreDisponivel Boolean         @default(true)
+  OrdemExibicao    Int             @default(0)
+  Cardapios        Cardapios       @relation(fields: [CardapioId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_CARDAPIO_CARDAPIOCARETORIAS_CARDAPIOID")
+  CardapioItens    CardapioItens[]
+
+  @@index([CardapioId], map: "IX_CardapioCategorias_CardapioId")
+}
+
+model CardapioComplementos {
+  Id                         String                    @id @db.Char(36)
+  CriadoEm                   DateTime                  @db.DateTime(6)
+  AlteradoEm                 DateTime?                 @db.DateTime(6)
+  ProdutoId                  String                    @db.Char(36)
+  CardapioGrupoComplementoId String                    @db.Char(36)
+  CobrarItem                 Int?                      @default(0) @db.TinyInt
+  CardapioGrupoComplementos  CardapioGrupoComplementos @relation(fields: [CardapioGrupoComplementoId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_CARDAPGRPCOMPL_CARDAPIOCOMPL_CARDAPIOGRUPOID")
+  Produtos                   Produtos                  @relation(fields: [ProdutoId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_PRODUTO_CARDAPIOCOMPLEMENTO_PRODUTOID")
+
+  @@index([CardapioGrupoComplementoId], map: "FK_CARDAPGRPCOMPL_CARDAPIOCOMPL_CARDAPIOGRUPOID_idx")
+  @@index([ProdutoId], map: "FK_PRODUTO_CARDAPIOCOMPLEMENTO_PRODUTOID_idx")
+  @@index([CardapioGrupoComplementoId], map: "IX_CardapioComplementos_CardapioGrupoComplementoId")
+  @@index([ProdutoId], map: "IX_CardapioComplementos_ProdutoId")
+}
+
+model CardapioGrupoComplementos {
+  Id                   String                 @id @db.Char(36)
+  CardapioItemId       String                 @db.Char(36)
+  Nome                 String?                @db.LongText
+  Obrigatorio          Boolean
+  Minimo               Int
+  Maximo               Int
+  CriadoEm             DateTime               @db.DateTime(6)
+  AlteradoEm           DateTime?              @db.DateTime(6)
+  CardapioComplementos CardapioComplementos[]
+  CardapioItens        CardapioItens          @relation(fields: [CardapioItemId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_CARDAPIOITEM_CARDAPIOGRUPOCOMPLEMENTO_CARDAPIOITEMID")
+
+  @@index([CardapioItemId], map: "IX_CardapioGrupoComplementos_CardapioItemId")
+}
+
+model CardapioItens {
+  Id                        String                      @id @db.Char(36)
+  CriadoEm                  DateTime                    @db.DateTime(6)
+  AlteradoEm                DateTime?                   @db.DateTime(6)
+  ProdutoId                 String                      @db.Char(36)
+  CardapioCategoriaId       String                      @db.Char(36)
+  QtdSabores                Int?
+  SempreDisponivel          Boolean                     @default(true)
+  TemComplemento            Boolean                     @default(false)
+  Ativo                     Int?                        @default(1) @db.TinyInt
+  CardapioGrupoComplementos CardapioGrupoComplementos[]
+  CardapioCategorias        CardapioCategorias          @relation(fields: [CardapioCategoriaId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_CARDAPIOCATETORIAS_CARDAPIOITENS_CARDAPIOCATEGORIAID")
+  Produtos                  Produtos                    @relation(fields: [ProdutoId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_PRODUTOS_CARDAPIOITENS_PRODUTOID")
+  Disponibilidades          Disponibilidades[]
+
+  @@index([CardapioCategoriaId], map: "IX_CardapioItens_CardapioCategoriaId")
+  @@index([ProdutoId], map: "IX_CardapioItens_ProdutoId")
+}
+
+model Cardapios {
+  Id                 String               @id @db.Char(36)
+  CriadoEm           DateTime             @db.DateTime(6)
+  AlteradoEm         DateTime?            @db.DateTime(6)
+  RestauranteId      String               @default("00000000-0000-0000-0000-000000000000") @db.Char(36)
+  CardapioCategorias CardapioCategorias[]
+  Restaurantes       Restaurantes         @relation(fields: [RestauranteId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_RESTAURANTES_CARDAPIOS_RESTAURANTEID")
+
+  @@index([RestauranteId], map: "IX_Cardapios_RestauranteId")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model CarouselBannerLoja {
+  Id            String       @id @db.Char(36)
+  RestauranteId String       @db.Char(36)
+  Url           String       @db.VarChar(255)
+  Restaurantes  Restaurantes @relation(fields: [RestauranteId], references: [Id], onDelete: Cascade, map: "FK_RESTAURANTES_BANNERLOJA_RESTAURANTEID")
+
+  @@index([RestauranteId], map: "FK_RESTAURANTES_BANNERLOJA_RESTAURANTEID")
+}
+
+model Cartoes {
+  Id            String    @id @db.Char(36)
+  UsuarioId     String    @db.Char(36)
+  Nome          String?   @db.LongText
+  Numero        String?   @db.LongText
+  DataExpiracao String?   @db.LongText
+  CodSeguranca  String?   @db.LongText
+  CriadoEm      DateTime  @db.DateTime(6)
+  AlteradoEm    DateTime? @db.DateTime(6)
+  Usuarios      Usuarios  @relation(fields: [UsuarioId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_USUARIO_CARTOES_USUARIOID")
+
+  @@index([UsuarioId], map: "IX_Cartoes_UsuarioId")
+}
+
+model CategoriaProdutos {
+  Id             String     @id @db.Char(36)
+  CategoriaId    String     @db.Char(36)
+  ProdutoId      String     @db.Char(36)
+  Ativo          Boolean    @db.Bit(1)
+  SincronizadoEm DateTime?  @db.DateTime(6)
+  Categorias     Categorias @relation(fields: [CategoriaId], references: [Id], onDelete: Cascade, map: "FK_CATEGORIAS_CATEGORIAPRODUTOS_CATEGORIAID")
+  Produtos       Produtos   @relation(fields: [ProdutoId], references: [Id], onDelete: Cascade, map: "FK_PRODUTOS_CATEGORIAPRODUTOS_PRODUTOID")
+
+  @@index([CategoriaId], map: "IX_CategoriaProdutos_CategoriaId")
+  @@index([ProdutoId], map: "IX_CategoriaProdutos_ProdutoId")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Categorias {
+  Id                String              @id @db.Char(36)
+  RestauranteId     String              @db.Char(36)
+  Nome              String?             @db.VarChar(50)
+  CriadoEm          DateTime            @db.DateTime(6)
+  AlteradoEm        DateTime?           @db.DateTime(6)
+  Pizza             Boolean             @db.Bit(1)
+  Status            Boolean             @db.Bit(1)
+  CodigoPDV         String?             @db.VarChar(100)
+  BordasMassasPizza BordasMassasPizza[]
+  CategoriaProdutos CategoriaProdutos[]
+  Restaurantes      Restaurantes        @relation(fields: [RestauranteId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_RESTAURANTES_CATEGORIAS_RESTAURANTEID")
+  SaboresPizza      SaboresPizza[]
+
+  @@index([RestauranteId], map: "IX_Categorias_RestauranteId")
+}
+
+model Complementos {
+  Id            String       @id @db.Char(36)
+  RestauranteId String       @default("00000000-0000-0000-0000-000000000000") @db.Char(36)
+  Nome          String?      @db.LongText
+  CriadoEm      DateTime     @db.DateTime(6)
+  AlteradoEm    DateTime?    @db.DateTime(6)
+  Preco         Float?
+  Status        Boolean      @default(dbgenerated("b'0'")) @db.Bit(1)
+  Restaurantes  Restaurantes @relation(fields: [RestauranteId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_RESTAURANTES_COMPLEMENTOS_RESTAURANTEID")
+
+  @@index([RestauranteId], map: "IX_Complementos_RestauranteId")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Cupons {
+  Id                                      String             @id @db.Char(36)
+  RestauranteId                           String             @db.Char(36)
+  CriadoEm                                DateTime           @db.DateTime(6)
+  AlteradoEm                              DateTime?          @db.DateTime(6)
+  CodigoCupom                             String             @db.VarChar(50)
+  PrimeiraCompra                          Boolean            @default(dbgenerated("b'0'")) @db.Bit(1)
+  TipoDesconto                            String             @db.VarChar(1)
+  ValorDesconto                           Decimal            @db.Decimal(19, 3)
+  ValorMaximoDesconto                     Decimal?           @db.Decimal(19, 3)
+  ValorMinimoPedido                       Decimal?           @db.Decimal(19, 3)
+  ValorDescontoConcedido                  Decimal?           @db.Decimal(19, 3)
+  QuantidadeCupomDisponivel               Int?               @default(1)
+  QuantidadeUtilizado                     Int?               @default(0)
+  QuantidadeRestante                      Int?               @default(0)
+  QuantidadePorCliente                    Int?               @default(1)
+  QuantidadeIlimitado                     Boolean            @default(dbgenerated("b'0'")) @db.Bit(1)
+  ConsumirLocal                           Boolean?           @db.Bit(1)
+  Retirar                                 Boolean?           @db.Bit(1)
+  Delivery                                Boolean?           @db.Bit(1)
+  SempreDisponivel                        Boolean            @default(dbgenerated("b'1'")) @db.Bit(1)
+  OcultarCupomAplicativo                  Boolean            @default(dbgenerated("b'0'")) @db.Bit(1)
+  Ativo                                   Boolean            @default(dbgenerated("b'1'")) @db.Bit(1)
+  CriadoPorId                             String?            @db.Char(36)
+  AlteradoPorId                           String?            @db.Char(36)
+  UrlCupom                                String?            @db.VarChar(200)
+  ValidadeCupom                           DateTime?          @db.DateTime(6)
+  Restaurantes                            Restaurantes       @relation(fields: [RestauranteId], references: [Id], onDelete: Cascade, map: "FK_RESTAURANTES_CUPONS")
+  Usuarios_Cupons_AlteradoPorIdToUsuarios Usuarios?          @relation("Cupons_AlteradoPorIdToUsuarios", fields: [AlteradoPorId], references: [Id], onDelete: Cascade, map: "FK_USUARIOS_CUPONS_ALTERADOPOR")
+  Usuarios_Cupons_CriadoPorIdToUsuarios   Usuarios?          @relation("Cupons_CriadoPorIdToUsuarios", fields: [CriadoPorId], references: [Id], onDelete: Cascade, map: "FK_USUARIOS_CUPONS_CRIADOPOR")
+  Disponibilidades                        Disponibilidades[]
+  PedidosDescontos                        PedidosDescontos[]
+
+  @@unique([RestauranteId, CodigoCupom], map: "IDX_CUPOM_UNICO")
+  @@index([AlteradoPorId], map: "FK_USUARIOS_CUPONS_ALTERADOPOR")
+  @@index([CriadoPorId], map: "FK_USUARIOS_CUPONS_CRIADOPOR")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Disponibilidades {
+  Id                  String         @id @db.Char(36)
+  RestauranteId       String?        @db.Char(36)
+  Inicio              String?        @db.VarChar(10)
+  Fim                 String?        @db.VarChar(10)
+  CriadoEm            DateTime       @db.DateTime(6)
+  AlteradoEm          DateTime?      @db.DateTime(6)
+  CardapioCategoriaId String?        @db.Char(36)
+  CardapioItemId      String?        @db.Char(36)
+  DiaFim              Int            @default(0)
+  DiaInicio           Int            @default(0)
+  PeriodoInicio       DateTime?      @db.DateTime(6)
+  PeriodoFinal        DateTime?      @db.DateTime(6)
+  CupomId             String?        @db.Char(36)
+  CardapioItens       CardapioItens? @relation(fields: [CardapioItemId], references: [Id], onDelete: Cascade, map: "FK_CARDAPIOITENS_DISPONIBILIDADE_CARDAPIOITEMID")
+  Cupons              Cupons?        @relation(fields: [CupomId], references: [Id], onDelete: Cascade, map: "FK_CUPONS_DISPONIBILIDADE")
+  Restaurantes        Restaurantes?  @relation(fields: [RestauranteId], references: [Id], onDelete: Cascade, map: "FK_RESTAURANTES_DISPONIBILIDADES_RESTAURANTEID")
+
+  @@index([CupomId], map: "FK_CUPONS_DISPONIBILIDADE")
+  @@index([CardapioCategoriaId], map: "IX_Disponibilidades_CardapioCategoriaId")
+  @@index([CardapioItemId], map: "IX_Disponibilidades_CardapioItemId")
+  @@index([RestauranteId], map: "IX_Disponibilidades_RestauranteId")
+}
+
+model Email {
+  Id               BigInt        @id @default(autoincrement())
+  EmailTemplateId  BigInt
+  DataEnvio        DateTime      @db.DateTime(6)
+  Assunto          String        @db.VarChar(200)
+  Remetente        String        @db.VarChar(200)
+  Destinatario     String        @db.VarChar(200)
+  Corpo            String        @db.Text
+  CriadoEm         DateTime      @db.DateTime(6)
+  EnvioSucess      Boolean?      @db.Bit(1)
+  TentativaReenvio Int?
+  AlteradoEm       DateTime?     @db.DateTime(6)
+  Status           Int?
+  MessageRetorno   String?       @db.VarChar(200)
+  UsuarioId        String?       @db.Char(36)
+  DataReenvio      DateTime?     @db.DateTime(6)
+  EmailTemplate    EmailTemplate @relation(fields: [EmailTemplateId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_EMAILTEMPLATE_EMAIL")
+
+  @@index([EmailTemplateId], map: "FK_EMAILTEMPLATE_EMAIL_idx")
+  @@index([DataEnvio], map: "IDX_EMAIL_DATAENVIO")
+  @@index([Destinatario], map: "IDX_EMAIL_DESTINATARIO")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model EmailTemplate {
+  Id               BigInt    @id @default(autoincrement())
+  Nome             String    @unique(map: "IDX_EMAILTEMPLATE_Nome") @db.VarChar(100)
+  Descricao        String?   @db.VarChar(200)
+  Tipo             String    @db.VarChar(45)
+  Alias            String?   @db.VarChar(100)
+  ConteudoTemplate String    @db.Text
+  Status           Int       @default(1) @db.TinyInt
+  CriadoEm         DateTime  @db.DateTime(6)
+  AlteradoEm       DateTime? @db.DateTime(6)
+  Email            Email[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Enderecos {
+  Id            String        @id @db.Char(36)
+  UsuarioId     String?       @db.Char(36)
+  CEP           String?       @db.VarChar(20)
+  Estado        String?       @db.VarChar(50)
+  Cidade        String?       @db.VarChar(100)
+  Bairro        String?       @db.VarChar(100)
+  Rua           String?       @db.VarChar(100)
+  Numero        String?       @db.VarChar(50)
+  Complemento   String?       @db.VarChar(150)
+  Referencia    String?       @db.VarChar(300)
+  Latitude      Float?
+  Longitude     Float?
+  CriadoEm      DateTime      @db.DateTime(6)
+  AlteradoEm    DateTime?     @db.DateTime(6)
+  Ativo         Boolean       @default(dbgenerated("b'0'")) @db.Bit(1)
+  RestauranteId String?       @db.Char(36)
+  Padrao        Boolean?      @default(dbgenerated("b'1'")) @db.Bit(1)
+  Restaurantes  Restaurantes? @relation(fields: [RestauranteId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_RESTAURANTES_ENDERECOS_RESTAURANTEID")
+  Usuarios      Usuarios?     @relation(fields: [UsuarioId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_USUARIO_ENDERECOS_USUARIOID")
+
+  @@index([RestauranteId], map: "IX_Enderecos_RestauranteId")
+  @@index([UsuarioId], map: "IX_Enderecos_UsuarioId")
+}
+
+model EnvioSMS {
+  Id            String       @id @db.Char(36)
+  RestauranteId String       @db.Char(36)
+  UsuarioId     String       @db.Char(36)
+  Telefone      String?      @db.LongText
+  Mensagem      String?      @db.LongText
+  Envio         DateTime     @db.DateTime(6)
+  Status        Boolean
+  CriadoEm      DateTime     @db.DateTime(6)
+  AlteradoEm    DateTime?    @db.DateTime(6)
+  Restaurantes  Restaurantes @relation(fields: [RestauranteId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_RESTAURANTES_ENVIOSMS_RESTAURANTEID")
+  Usuarios      Usuarios     @relation(fields: [UsuarioId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_USUARIO_ENVIOSMS_USUARIOID")
+
+  @@index([RestauranteId], map: "IX_EnvioSMS_RestauranteId")
+  @@index([UsuarioId], map: "IX_EnvioSMS_UsuarioId")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model FidelidadeCliente {
+  Id                  String      @id @db.Char(36)
+  FidelidadeId        String      @db.Char(36)
+  ClienteId           String      @db.Char(36)
+  QuantidadeAcumulado Int
+  TotalBeneficio      Decimal?    @db.Decimal(19, 3)
+  CriadoEm            DateTime    @db.DateTime(6)
+  AlteradoEm          DateTime?   @db.DateTime(6)
+  Resgatou            Boolean     @db.Bit(1)
+  ResgatouEm          DateTime?   @db.DateTime(6)
+  Fidelidades         Fidelidades @relation(fields: [FidelidadeId], references: [Id], onDelete: Cascade, map: "FK_FIDELIDADE_FIDELIDADECLIENTE")
+
+  @@index([FidelidadeId], map: "FK_FIDELIDADE_FIDELIDADECLIENTE")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model FidelidadePontuarResgatar {
+  Id           String      @id @db.Char(36)
+  FidelidadeId String      @db.Char(36)
+  ProdutoId    String      @db.Char(36)
+  Tipo         String      @db.Char(1)
+  CriadoEm     DateTime?   @db.DateTime(6)
+  Fidelidades  Fidelidades @relation(fields: [FidelidadeId], references: [Id], onDelete: Cascade, map: "FK_FIDELIDADE_FIDELIDADEPONTUARRESGATAR")
+  Produtos     Produtos    @relation(fields: [ProdutoId], references: [Id], onDelete: Cascade, map: "FK_PRODUTO_FIDELIDADEPONTUARRESGATAR")
+
+  @@index([FidelidadeId], map: "FK_FIDELIDADE_FIDELIDADEPONTUARRESGATAR")
+  @@index([ProdutoId], map: "FK_PRODUTO_FIDELIDADEPONTUARRESGATAR")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Fidelidades {
+  Id                         String                       @id @db.Char(36)
+  EstabelecimentoId          String                       @db.Char(36)
+  NomeCampanha               String                       @db.VarChar(100)
+  SemValidade                Boolean                      @db.Bit(1)
+  ValidoAte                  DateTime?                    @db.DateTime(6)
+  QuantidadeSeloPontuar      Int                          @default(1)
+  QuantidadeSeloResgatar     Int                          @default(10)
+  Status                     Boolean                      @db.Bit(1)
+  CriadoEm                   DateTime?                    @db.DateTime(6)
+  AlteradoEm                 DateTime?                    @db.DateTime(6)
+  Regulamento                String?                      @db.LongText
+  FidelidadeCliente          FidelidadeCliente[]
+  FidelidadePontuarResgatar  FidelidadePontuarResgatar[]
+  Restaurantes               Restaurantes                 @relation(fields: [EstabelecimentoId], references: [Id], onDelete: Cascade, map: "FK_ESTABELECIMENTO_FIDELIDADE")
+  MovimentoFidelidadeCliente MovimentoFidelidadeCliente[]
+
+  @@index([EstabelecimentoId], map: "FK_ESTABELECIMENTO_FIDELIDADE")
+}
+
+model FormasPagamento {
+  Id                        String                      @id @db.Char(36)
+  Nome                      String?                     @db.LongText
+  CriadoEm                  DateTime                    @db.DateTime(6)
+  AlteradoEm                DateTime?                   @db.DateTime(6)
+  TipoFormaPagamento        Int                         @default(0)
+  TipoEntrega               Int                         @default(0)
+  PrePago                   Boolean                     @default(dbgenerated("b'0'")) @db.Bit(1)
+  Codigo                    Int
+  RestauranteFormaPagamento RestauranteFormaPagamento[]
+}
+
+model HistoricosStatus {
+  Id         String    @id @db.Char(36)
+  PedidoId   String    @db.Char(36)
+  Data       DateTime  @db.DateTime(6)
+  Situacao   Int       @db.SmallInt
+  CriadoEm   DateTime  @db.DateTime(6)
+  AlteradoEm DateTime? @db.DateTime(6)
+  Pedidos    Pedidos   @relation(fields: [PedidoId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_PEDIDOS_HISTORICOSSTATUS_PEDIDOID")
+
+  @@index([PedidoId], map: "IX_HistoricosStatus_PedidoId")
+}
+
+model HorariosEntrega {
+  Id            String       @id @db.Char(36)
+  AreaEntregaId String       @db.Char(36)
+  Inicio        String?      @db.LongText
+  Fim           String?      @db.LongText
+  TaxaEntrega   Float
+  CriadoEm      DateTime     @db.DateTime(6)
+  AlteradoEm    DateTime?    @db.DateTime(6)
+  Turno         String?      @db.LongText
+  TempoEntrega  Int          @default(0)
+  DiaFim        Int          @default(0)
+  DiaInicio     Int          @default(0)
+  AreasEntrega  AreasEntrega @relation(fields: [AreaEntregaId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_AREASENTREGA_COORDENADAS_AREAENTREGAID")
+
+  @@index([AreaEntregaId], map: "IX_HorariosEntrega_AreaEntregaId")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model ListaDistribuicao {
+  Id                        String                  @id @db.Char(36)
+  CampanhaId                String                  @db.Char(36)
+  ClienteId                 String                  @db.Char(36)
+  StatusListaDistribuicaoId Int
+  NomeCliente               String                  @db.VarChar(100)
+  Telefone                  String                  @db.VarChar(50)
+  QuantidadeReenvio         Int
+  CriadoEm                  DateTime?               @db.DateTime(6)
+  EnviadoEm                 DateTime?               @db.DateTime(6)
+  MensagemRetornoEnvio      String?                 @db.VarChar(200)
+  Campanha                  Campanha                @relation(fields: [CampanhaId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_CAMPANHA_LISTADISTRIBUICAO_CAMPANHAID")
+  Usuarios                  Usuarios                @relation(fields: [ClienteId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_CLIENTE_LISTADISTRIBUICAO_CLIENTEID")
+  StatusListaDistribuicao   StatusListaDistribuicao @relation(fields: [StatusListaDistribuicaoId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_STATUSLISTADISTRIBUICAO_LISTADISTRIBUICAO_STATUSID")
+
+  @@index([CampanhaId], map: "FK_CAMPANHA_LISTADISTRIBUICAO_CAMPANHAID_IDX")
+  @@index([StatusListaDistribuicaoId], map: "FK_STATUSLISTADISTRIBUICAO_LISTADISTRIBUICAO_STATUSID")
+  @@index([CampanhaId, StatusListaDistribuicaoId, Telefone], map: "IDX_LISTADISTRIBUICAO_CAMPANHAIDTELEFONE")
+  @@index([ClienteId], map: "IDX_LISTADISTRIBUICAO_CLIENTEID")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model MensagemRapida {
+  Id           String       @id @db.Char(36)
+  LojaId       String       @db.Char(36)
+  Mensagem     String       @db.VarChar(5000)
+  Restaurantes Restaurantes @relation(fields: [LojaId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_RESTAURANTES_MENSAGEMRAPIDA_LOJAID")
+
+  @@index([LojaId], map: "FK_RESTAURANTES_MENSAGEMRAPIDA_LOJAID")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model MovimentoFidelidadeCliente {
+  Id             String       @id @db.Char(36)
+  FidelidadeId   String?      @db.Char(36)
+  LojaId         String       @db.Char(36)
+  ClienteId      String       @db.Char(36)
+  PedidoItemId   String?      @db.Char(36)
+  MovimentadoEm  DateTime     @db.DateTime(6)
+  Descricao      String?      @db.VarChar(200)
+  Tipo           String       @db.Char(1)
+  QuantidadeSelo Int
+  ValorBeneficio Decimal      @default(0) @db.Decimal(19, 3)
+  SaldoSelo      Int
+  Fidelidades    Fidelidades? @relation(fields: [FidelidadeId], references: [Id], onDelete: Cascade, map: "FK_FIDELIDADE_MOVIMENTOFIDELIDADECLIENTE_FIDELIDADEID")
+  PedidoItens    PedidoItens? @relation(fields: [PedidoItemId], references: [Id], onDelete: Cascade, map: "FK_PEDIDOITEM_MOVIMENTOFIDELIDADECLIENTE_PEDIDOITEMID")
+  Restaurantes   Restaurantes @relation(fields: [LojaId], references: [Id], onDelete: Cascade, map: "FK_RESTAURANTE_MOVIMENTOFIDELIDADECLIENTE_LOJAID")
+  Usuarios       Usuarios     @relation(fields: [ClienteId], references: [Id], onDelete: Cascade, map: "FK_USUARIO_MOVIMENTOFIDELIDADECLIENTE_CLIENTEID")
+
+  @@index([FidelidadeId], map: "FK_FIDELIDADE_MOVIMENTOFIDELIDADECLIENTE_FIDELIDADEID")
+  @@index([PedidoItemId], map: "FK_PEDIDOITEM_MOVIMENTOFIDELIDADECLIENTE_PEDIDOITEMID")
+  @@index([LojaId], map: "FK_RESTAURANTE_MOVIMENTOFIDELIDADECLIENTE_LOJAID")
+  @@index([ClienteId], map: "FK_USUARIO_MOVIMENTOFIDELIDADECLIENTE_CLIENTEID")
+}
+
+model ParametroSistema {
+  Id         BigInt    @id @default(autoincrement())
+  Nome       String    @unique(map: "IDDX_PARAMETROSISTEMA_Nome") @db.VarChar(100)
+  Descricao  String?   @db.VarChar(200)
+  Valor      String    @db.Text
+  CriadoEm   DateTime  @db.DateTime(6)
+  AlteradoEm DateTime? @db.DateTime(6)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Parametros {
+  Id                         String        @id @db.Char(36)
+  UsaMaiorValorSabor         Boolean       @default(dbgenerated("b'0'")) @db.Bit(1)
+  PedidoMin                  Decimal       @default(0.000) @db.Decimal(19, 3)
+  CriadoEm                   DateTime      @db.DateTime(6)
+  AlteradoEm                 DateTime?     @db.DateTime(6)
+  TelefoneRecebimento        String?       @db.VarChar(20)
+  DistanciaLimite            Float         @default(0)
+  QtdMaxSabores              Int           @default(0)
+  Cor                        String?       @db.VarChar(20)
+  PedidoViaWhasApp           Boolean       @default(false)
+  StatusDelivery             Boolean       @default(true)
+  TaxaServico                Decimal       @default(0.000) @db.Decimal(19, 3)
+  AvaliacaoObrigatoria       Boolean       @default(false)
+  ChaveMaps                  String?       @db.VarChar(200)
+  SincronizadorAtivo         Int?          @default(1) @db.TinyInt
+  ConsumirLocal              Int?          @default(1) @db.TinyInt
+  Delivery                   Int?          @default(1) @db.TinyInt
+  RetiradaLocal              Int?          @default(1) @db.TinyInt
+  TempoRetiradaLocal         Int?
+  AuthComplete               Boolean?      @default(dbgenerated("b'1'")) @db.Bit(1)
+  AutomaticApproval          Boolean?      @default(dbgenerated("b'1'")) @db.Bit(1)
+  LojaNuncaFecha             Boolean       @default(dbgenerated("b'0'")) @db.Bit(1)
+  PedidoCancelaEm            Int           @default(10)
+  PixelFacebook              String?       @db.VarChar(100)
+  OcultarAddItemCarrinho     Boolean       @default(false) @db.Bit(1)
+  BackugroundFormLogin       String?       @db.VarChar(255)
+  AnexarDocumentoObrigatorio Boolean       @default(false) @db.Bit(1)
+  StatusCardapioDigital      Boolean       @default(dbgenerated("b'1'")) @db.Bit(1)
+  UsarComoCardapioDigital    Boolean       @default(dbgenerated("b'0'")) @db.Bit(1)
+  UsarPrecoPDV               Boolean       @default(dbgenerated("b'0'")) @db.Bit(1)
+  NSPedidosContratado        Boolean       @default(dbgenerated("b'1'")) @db.Bit(1)
+  WhatsappContratado         Boolean       @default(dbgenerated("b'1'")) @db.Bit(1)
+  Restaurantes               Restaurantes?
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model PedidoAvaliacoes {
+  Id         String    @id @db.Char(36)
+  Nota       Int
+  Descricao  String?   @db.VarChar(500)
+  CriadoEm   DateTime  @db.DateTime(6)
+  AlteradoEm DateTime? @db.DateTime(6)
+  Pedidos    Pedidos?
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model PedidoItens {
+  Id                         String                       @id @db.Char(36)
+  PedidoId                   String?                      @db.Char(36)
+  ProdutoId                  String?                      @db.Char(36)
+  TamanhoPizzaId             String?                      @db.Char(36)
+  Quantidade                 Float
+  Preco                      Float
+  Observacao                 String?                      @db.VarChar(500)
+  CriadoEm                   DateTime                     @db.DateTime(6)
+  AlteradoEm                 DateTime?                    @db.DateTime(6)
+  CategoriaId                String?                      @db.Char(36)
+  SubTotal                   Float                        @default(0)
+  PedidoItemId               String?                      @db.Char(36)
+  QuantidadePontuado         Int?                         @default(0)
+  EResgate                   Int                          @default(0) @db.TinyInt
+  QuantidadeResgatado        Int?                         @default(0)
+  MovimentoFidelidadeCliente MovimentoFidelidadeCliente[]
+  Pedidos                    Pedidos?                     @relation(fields: [PedidoId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_PEDIDOS_PEDIDOITENS_PEDIDOID")
+  Produtos                   Produtos?                    @relation(fields: [ProdutoId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_PRODUTOS_PEDIDOITENS_PRODUTOID")
+  TamanhoPizzas              TamanhoPizzas?               @relation(fields: [TamanhoPizzaId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_TAMANHOPIZZAS_PEDIDOITENS_TAMANHOPIZZAID")
+  PedidoSubItens             PedidoSubItens[]
+  PedidosDescontos           PedidosDescontos[]
+
+  @@index([PedidoId], map: "IX_PedidoItens_PedidoId")
+  @@index([PedidoItemId], map: "IX_PedidoItens_PedidoItemId")
+  @@index([ProdutoId], map: "IX_PedidoItens_ProdutoId")
+  @@index([TamanhoPizzaId], map: "IX_PedidoItens_TamanhoPizzaId")
+}
+
+model PedidoStatus {
+  Id         String    @id @db.Char(36)
+  CriadoEm   DateTime  @db.DateTime(6)
+  AlteradoEm DateTime? @db.DateTime(6)
+  StatusId   String?   @db.Char(36)
+  PedidoId   String    @db.Char(36)
+  Status     Int       @default(0)
+  Pedidos    Pedidos   @relation(fields: [PedidoId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_PEDIDOS_PEDIDOSTATUS_PEDIDOID")
+
+  @@index([PedidoId], map: "IX_PedidoStatus_PedidoId")
+  @@index([StatusId], map: "IX_PedidoStatus_StatusId")
+}
+
+model PedidoSubItens {
+  Id                String             @id @db.Char(36)
+  PedidoItemId      String             @db.Char(36)
+  ComplementoId     String?            @db.Char(36)
+  BordaMassaPizzaId String?            @db.Char(36)
+  SaborPizzaId      String?            @db.Char(36)
+  Quantidade        Float
+  Preco             Float
+  CriadoEm          DateTime           @db.DateTime(6)
+  AlteradoEm        DateTime?          @db.DateTime(6)
+  SubTotal          Float?
+  BordasMassasPizza BordasMassasPizza? @relation(fields: [BordaMassaPizzaId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_BORDAMASSAPIZZA_PEDIDOSUBITEM_BORDAMASSAID")
+  Produtos          Produtos?          @relation(fields: [ComplementoId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_COMPLEMENTOS_PEDIDOSUBITENS_COMPLEMENTOID")
+  PedidoItens       PedidoItens        @relation(fields: [PedidoItemId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_PEDIDOITEM_PEDUDOSUBITEM_PEDIDOITEMID")
+  SaboresPizza      SaboresPizza?      @relation(fields: [SaborPizzaId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_SABORPIZZA_PEDIDOSUBITEM_SABORPIZZAID")
+
+  @@index([BordaMassaPizzaId], map: "IX_PedidoSubItens_BordaMassaPizzaId")
+  @@index([ComplementoId], map: "IX_PedidoSubItens_ComplementoId")
+  @@index([PedidoItemId], map: "IX_PedidoSubItens_PedidoItemId")
+  @@index([SaborPizzaId], map: "IX_PedidoSubItens_SaborPizzaId")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Pedidos {
+  Id                                         String                     @id @db.Char(36)
+  RestauranteId                              String                     @db.Char(36)
+  UsuarioId                                  String?                    @db.Char(36)
+  EnderecoId                                 String?                    @db.Char(36)
+  RestauranteFormaPagamentoId                String?                    @db.Char(36)
+  AreaEntregaId                              String?                    @db.Char(36)
+  PedidoAvaliacaoId                          String?                    @unique(map: "IX_Pedidos_PedidoAvaliacaoId") @db.Char(36)
+  CaixaId                                    String?                    @db.Char(36)
+  GerenteId                                  String?                    @db.Char(36)
+  OperadorId                                 String?                    @db.Char(36)
+  DispositivoId                              String?                    @db.Char(36)
+  CartaoId                                   String?                    @db.Char(36)
+  CriadoEm                                   DateTime                   @db.DateTime(6)
+  AlteradoEm                                 DateTime?                  @db.DateTime(6)
+  NumPedido                                  Int                        @default(autoincrement())
+  TipoEntrega                                Int?
+  TempoEntrega                               Int?
+  Status                                     Int                        @default(0)
+  TaxaEntrega                                Decimal?                   @db.Decimal(19, 3)
+  TaxaServico                                Decimal?                   @db.Decimal(19, 3)
+  ValorTroco                                 Decimal?                   @db.Decimal(19, 3)
+  Discount                                   Decimal?                   @db.Decimal(19, 3)
+  ValorTotal                                 Decimal                    @default(0.000) @db.Decimal(19, 3)
+  Pago                                       Int?                       @default(0) @db.TinyInt
+  MotivoCancelamento                         String?                    @db.VarChar(100)
+  HashPixPenseBank                           String?                    @db.VarChar(500)
+  Alias                                      String?                    @db.VarChar(500)
+  CanceladoEm                                DateTime?                  @db.DateTime(6)
+  ProntoEm                                   DateTime?                  @db.DateTime(6)
+  FinalizouEm                                DateTime?                  @db.DateTime(6)
+  Entregue                                   Boolean                    @default(dbgenerated("b'0'")) @db.Bit(1)
+  EntregueEm                                 DateTime?                  @db.DateTime(6)
+  Observacao                                 String?                    @db.VarChar(200)
+  MateraReference                            String?                    @db.VarChar(100)
+  ExpiradoEm                                 DateTime?                  @db.DateTime(6)
+  QuantidadePontuado                         Int?                       @default(0)
+  TipoPedidoId                               String?                    @db.Char(36)
+  HistoricosStatus                           HistoricosStatus[]
+  Lancamento                                 Lancamento[]
+  PedidoItens                                PedidoItens[]
+  PedidoStatus                               PedidoStatus[]
+  AreasEntrega                               AreasEntrega?              @relation(fields: [AreaEntregaId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_AREAENTREGA_PEDIDOS_AREAENTREGAID")
+  CaixaLoja                                  Caixa?                     @relation(fields: [CaixaId], references: [Id], onDelete: Cascade, map: "FK_CAIXA_PEDIDOS_CAIXAID")
+  Colaborador_Pedidos_GerenteIdToColaborador Colaborador?               @relation("Pedidos_GerenteIdToColaborador", fields: [GerenteId], references: [Id], onDelete: Cascade, map: "FK_COLABORADOR_PEDIDOS_GERENTEID")
+  Colaborador                                Colaborador?               @relation(fields: [OperadorId], references: [Id], onDelete: Cascade, map: "FK_COLABORADOR_PEDIDOS_OPERADORID")
+  DispositivoLoja                            DispositivoLoja?           @relation(fields: [DispositivoId], references: [Id], onDelete: Cascade, map: "FK_DISPOSITIVO_PEDIDOS_DISPOSITIVOID")
+  PedidoAvaliacoes                           PedidoAvaliacoes?          @relation(fields: [PedidoAvaliacaoId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_PEDIDOAVALIACAO_PEDIDOS_PEDIDOAVALIACAOID")
+  Restaurantes                               Restaurantes               @relation(fields: [RestauranteId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_RESTAURANTES_PEDIDOS_RESTAURANTEID")
+  RestauranteFormaPagamento                  RestauranteFormaPagamento? @relation(fields: [RestauranteFormaPagamentoId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_RESTAURANTE_FORMAPAGAMENTO_PEDIDOS_RESTAURANTEFORMAPAMENTOID")
+  TipoPedido                                 TipoPedido?                @relation(fields: [TipoPedidoId], references: [Id], onDelete: Cascade, map: "FK_TIPOPEDIDO_PEDIDO_TIPOPEDIDOID")
+  Usuarios                                   Usuarios?                  @relation(fields: [UsuarioId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_USUARIO_PEDIDOS_USUARIOID")
+  PedidosDescontos                           PedidosDescontos[]
+
+  @@index([AreaEntregaId], map: "FK_AREAENTREGA_PEDIDOS_AREAENTREGAID")
+  @@index([CartaoId], map: "IX_Pedidos_CartaoId")
+  @@index([EnderecoId], map: "IX_Pedidos_EnderecoId")
+  @@index([RestauranteFormaPagamentoId], map: "IX_Pedidos_FormaPagamentoId")
+  @@index([NumPedido], map: "IX_Pedidos_NumPedido")
+  @@index([RestauranteId], map: "IX_Pedidos_RestauranteId")
+  @@index([UsuarioId], map: "IX_Pedidos_UsuarioId")
+  @@index([TipoPedidoId], map: "FK_TIPOPEDIDO_PEDIDO_TIPOPEDIDOID")
+  @@index([CaixaId], map: "FK_CAIXA_PEDIDOS_CAIXAID")
+  @@index([OperadorId], map: "FK_COLABORADOR_PEDIDOS_OPERADORID")
+  @@index([GerenteId], map: "FK_COLABORADOR_PEDIDOS_GERENTEID")
+  @@index([DispositivoId], map: "FK_DISPOSITIVO_PEDIDOS_DISPOSITIVOID")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model PedidosDescontos {
+  Id            String       @id @db.Char(36)
+  CupomId       String?      @db.Char(36)
+  ClienteId     String       @db.Char(36)
+  PedidoId      String       @db.Char(36)
+  PedidoItemId  String?      @db.Char(36)
+  CriadoEm      DateTime     @db.DateTime(6)
+  Nome          String?      @db.VarChar(50)
+  Origem        String       @db.VarChar(50)
+  SubsidiadoPor String       @db.VarChar(50)
+  ValorDesconto Decimal      @db.Decimal(19, 3)
+  ValorPedido   Decimal?     @db.Decimal(19, 3)
+  Percentual    Decimal?     @db.Decimal(19, 3)
+  Cupons        Cupons?      @relation(fields: [CupomId], references: [Id], onDelete: Cascade, map: "FK_CUPONS_PedidosDescontos")
+  Pedidos       Pedidos      @relation(fields: [PedidoId], references: [Id], onDelete: Cascade, map: "FK_PEDIDOS_PedidosDescontos")
+  PedidoItens   PedidoItens? @relation(fields: [PedidoItemId], references: [Id], onDelete: Cascade, map: "FK_PEDIDOTEIM_PEDIDODESCONTO_PEDIDOTEIMID")
+  Usuarios      Usuarios     @relation(fields: [ClienteId], references: [Id], onDelete: Cascade, map: "FK_USUARIOS_PEDIDOSDESCONTOS_CLIENTEID")
+
+  @@index([CupomId], map: "FK_CUPONS_PedidosDescontos")
+  @@index([PedidoId], map: "FK_PEDIDOS_PedidosDescontos")
+  @@index([PedidoItemId], map: "FK_PEDIDOTEIM_PEDIDODESCONTO_PEDIDOTEIMID")
+  @@index([ClienteId], map: "FK_USUARIOS_PEDIDOSDESCONTOS_CLIENTEID")
+}
+
+model ProdutoKitItens {
+  Id           String    @id @db.Char(36)
+  ProdutoKitId String    @db.Char(36)
+  ProdutoId    String    @db.Char(36)
+  Quantidade   Int       @db.SmallInt
+  CriadoEm     DateTime  @db.DateTime(6)
+  AlteradoEm   DateTime? @db.DateTime(6)
+  Produtos     Produtos  @relation(fields: [ProdutoId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_PRODUTOS_PRODUTOKITITENS_PRODUTOID")
+
+  @@index([ProdutoId], map: "IX_ProdutoKitItens_ProdutoId")
+  @@index([ProdutoKitId], map: "IX_ProdutoKitItens_ProdutoKitId")
+}
+
+model ProdutoKits {
+  Id         String    @id @db.Char(36)
+  ProdutoId  String    @db.Char(36)
+  Preco      Float
+  CriadoEm   DateTime  @db.DateTime(6)
+  AlteradoEm DateTime? @db.DateTime(6)
+  Produtos   Produtos  @relation(fields: [ProdutoId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_PRODUTOS_PRODUTOKITS_PRODUTOID")
+
+  @@index([ProdutoId], map: "IX_ProdutoKits_ProdutoId")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Produtos {
+  Id                                                                String                      @id @db.Char(36)
+  RestauranteId                                                     String                      @db.Char(36)
+  CriadoEm                                                          DateTime                    @db.DateTime(6)
+  AlteradoEm                                                        DateTime?                   @db.DateTime(6)
+  Nome                                                              String?                     @db.VarChar(250)
+  Descricao                                                         String?                     @db.VarChar(1000)
+  Tipo                                                              String                      @db.VarChar(1)
+  Imagem                                                            String?                     @db.VarChar(300)
+  Preco                                                             Decimal                     @default(0.000) @db.Decimal(19, 3)
+  PrecoPDV                                                          Decimal                     @default(0.000) @db.Decimal(19, 3)
+  Status                                                            Boolean                     @db.Bit(1)
+  SincronizadoEm                                                    DateTime?                   @db.DateTime(6)
+  Betiquim                                                          Boolean                     @default(false)
+  TamanhoFome                                                       Int                         @default(0)
+  CodigoExterno                                                     String?                     @db.VarChar(100)
+  ViewPriceOnline                                                   Boolean                     @default(dbgenerated("b'1'")) @db.Bit(1)
+  CardapioComplementos                                              CardapioComplementos[]
+  CardapioItens                                                     CardapioItens[]
+  CategoriaProdutos                                                 CategoriaProdutos[]
+  FidelidadePontuarResgatar                                         FidelidadePontuarResgatar[]
+  PedidoItens                                                       PedidoItens[]
+  PedidoSubItens                                                    PedidoSubItens[]
+  ProdutoKitItens                                                   ProdutoKitItens[]
+  ProdutoKits                                                       ProdutoKits[]
+  Restaurantes                                                      Restaurantes                @relation(fields: [RestauranteId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_RESTAURANTES_PRODUTOS_RESTAURANTEID")
+  ProdutosComplementos_ProdutosComplementos_ProdutoIdToProdutos     ProdutosComplementos[]      @relation("ProdutosComplementos_ProdutoIdToProdutos")
+  ProdutosComplementos_ProdutosComplementos_ComplementoIdToProdutos ProdutosComplementos[]      @relation("ProdutosComplementos_ComplementoIdToProdutos")
+  TamanhoPizzas                                                     TamanhoPizzas[]
+
+  @@index([RestauranteId], map: "IX_Produtos_RestauranteId")
+}
+
+model ProdutosComplementos {
+  Id                                                    String    @id @db.Char(36)
+  CriadoEm                                              DateTime  @db.DateTime(6)
+  AlteradoEm                                            DateTime? @db.DateTime(6)
+  ProdutoId                                             String    @db.Char(36)
+  ComplementoId                                         String    @db.Char(36)
+  Ativo                                                 Boolean   @default(dbgenerated("b'1'")) @db.Bit(1)
+  SincronizadoEm                                        DateTime? @db.DateTime(6)
+  Produtos_ProdutosComplementos_ProdutoIdToProdutos     Produtos  @relation("ProdutosComplementos_ProdutoIdToProdutos", fields: [ProdutoId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_PRODUTOS_PRODUTOCOMPLEMENTOS_PRODUTOID")
+  Produtos_ProdutosComplementos_ComplementoIdToProdutos Produtos  @relation("ProdutosComplementos_ComplementoIdToProdutos", fields: [ComplementoId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_PRODUTOS_PRODUTOSCOMPLEMENTOS_COMPLEMENTOID")
+
+  @@index([ComplementoId], map: "FK_COMPLEMENTOS_PRODUTOSCOMPLEMENTOS_COMPLEMENTOID_idx")
+  @@index([ComplementoId], map: "FK_PRODUTOS_PRODUTOSCOMPLEMENTOS_COMPLEMENTOID_idx")
+  @@index([ProdutoId], map: "FK_PRODUTOS_PRODUTOSCOMPLEMENTOS_PRODUTOID_idx")
+  @@index([ProdutoId, ComplementoId], map: "IDX_PRODUTOSCOMPLEMENTOS_PROD_COMPL")
+  @@index([ProdutoId], map: "IX_ProdutosComplementos_ProdutoId")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model RestauranteClientes {
+  Id            String    @id @db.Char(36)
+  RestauranteId String    @db.Char(36)
+  UsuarioId     String    @db.Char(36)
+  CriadoEm      DateTime  @db.DateTime(6)
+  AlteradoEm    DateTime? @db.DateTime(6)
+  Aprovado      Boolean   @default(dbgenerated("b'1'")) @db.Bit(1)
+  Ativo         Boolean   @default(dbgenerated("b'1'")) @db.Bit(1)
+  Token         String?   @db.VarChar(50)
+  Tag           String?   @db.VarChar(100)
+  Origem        String?   @db.VarChar(20)
+  Observacao    String?   @db.VarChar(400)
+
+  @@unique([RestauranteId, UsuarioId], map: "IDX_RESTAURANTE_CLIENTE_RESTAURANTEID")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model RestauranteFormaPagamento {
+  Id                             String            @id @db.Char(36)
+  RestauranteId                  String            @db.Char(36)
+  FormaPagamentoId               String            @db.Char(36)
+  Status                         Int               @db.SmallInt
+  CriadoEm                       DateTime          @db.DateTime(6)
+  AlteradoEm                     DateTime?         @db.DateTime(6)
+  TokenPixBalcaoPenseBank        String?           @db.VarChar(500)
+  PercentTransactionPixPenseBank Decimal?          @db.Decimal(19, 3)
+  TimeLifePixPenseBank           Int?
+  TaxaServico                    Decimal?          @db.Decimal(19, 3)
+  AppDelivery                    Boolean           @default(true) @db.Bit(1)
+  PDVFlow                        Boolean           @default(true) @db.Bit(1)
+  TotemAutoAtendimento           Boolean           @default(false) @db.Bit(1)
+  PDVMobile                      Boolean           @default(false) @db.Bit(1)
+  CaixaLancamento                CaixaLancamento[]
+  Lancamento                     Lancamento[]
+  Pedidos                        Pedidos[]
+  FormasPagamento                FormasPagamento   @relation(fields: [FormaPagamentoId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_FORMASPAGAMENTO_RESTAURANTEFORMAPAGAMENTO_FORMAPAGAMENTOID")
+  Restaurantes                   Restaurantes      @relation(fields: [RestauranteId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_RESTAURANTES_RESTAURANTEFORMAPAGAMENTO_RESTAURANTEID")
+
+  @@index([FormaPagamentoId], map: "IX_RestauranteFormaPagamento_FormaPagamentoId")
+  @@index([RestauranteId], map: "IX_RestauranteFormaPagamento_RestauranteId")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model RestauranteURLs {
+  Id            String       @id @db.Char(36)
+  RestauranteId String       @db.Char(36)
+  URL           String       @db.LongText
+  CriadoEm      DateTime     @db.DateTime(6)
+  AlteradoEm    DateTime?    @db.DateTime(6)
+  LinkProprio   String?      @db.VarChar(255)
+  Restaurantes  Restaurantes @relation(fields: [RestauranteId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_RESTAURANTES_RESTAURANTEURLS_RESTAURANTEID")
+
+  @@index([RestauranteId], map: "IX_RestauranteURLs_RestauranteId")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Restaurantes {
+  Id                         String                       @id @db.Char(36)
+  Nome                       String?                      @db.LongText
+  NebulaCode                 String?                      @db.VarChar(10)
+  ChaveAcesso                String?                      @db.VarChar(10)
+  ImagemFundo                String?                      @db.LongText
+  ImagemLogo                 String?                      @db.LongText
+  Telefone                   String?                      @db.LongText
+  Parametro_Id               String                       @unique(map: "IX_Restaurantes_Parametro_Id") @db.Char(36)
+  CriadoEm                   DateTime                     @db.DateTime(6)
+  AlteradoEm                 DateTime?                    @db.DateTime(6)
+  CNPJ                       String?                      @unique(map: "IDX_RESTAURANTE_CNPJ") @db.VarChar(20)
+  MerchantId                 String?                      @db.LongText
+  MerchantPwd                String?                      @db.LongText
+  TempoMinimo                Int                          @default(0)
+  Fechado                    Boolean                      @default(dbgenerated("b'0'")) @db.Bit(1)
+  UltimaRequest              DateTime?                    @db.DateTime(6)
+  Ativo                      Boolean                      @default(dbgenerated("b'1'")) @db.Bit(1)
+  SincronizadoEm             DateTime?                    @db.DateTime(6)
+  Facebook                   String?                      @db.LongText
+  Instagram                  String?                      @db.LongText
+  Segmento                   String?                      @db.LongText
+  SoftwareHouse_Id           Int?
+  VencimentoLicensa          DateTime?                    @db.DateTime(6)
+  VersaoPDVFlow              String?                      @db.VarChar(20)
+  Email                      String?                      @db.VarChar(100)
+  Alias                      String?                      @db.VarChar(100)
+  VersaoDBPDVFlow            String?                      @db.VarChar(20)
+  InicioPausaProgramada      DateTime?                    @db.DateTime(6)
+  FimPausaProgramada         DateTime?                    @db.DateTime(6)
+  AreasEntrega               AreasEntrega[]
+  Caixa                      Caixa[]
+  Campanha                   Campanha[]
+  Cardapios                  Cardapios[]
+  CarouselBannerLoja         CarouselBannerLoja[]
+  Categorias                 Categorias[]
+  ChatConfiguracoes          ChatConfiguracoes[]
+  ChatConversa               ChatConversa[]
+  ChatRegrasMensagens        ChatRegrasMensagens[]
+  ChatTemplateResposta       ChatTemplateResposta[]
+  Colaborador                Colaborador[]
+  Complementos               Complementos[]
+  Cupons                     Cupons[]
+  Disponibilidades           Disponibilidades[]
+  DispositivoLoja            DispositivoLoja[]
+  Enderecos                  Enderecos[]
+  EnvioSMS                   EnvioSMS[]
+  Fidelidades                Fidelidades[]
+  Lancamento                 Lancamento[]
+  MensagemRapida             MensagemRapida[]
+  MovimentoFidelidadeCliente MovimentoFidelidadeCliente[]
+  Pedidos                    Pedidos[]
+  Produtos                   Produtos[]
+  RestauranteFormaPagamento  RestauranteFormaPagamento[]
+  RestauranteURLs            RestauranteURLs[]
+  Parametros                 Parametros                   @relation(fields: [Parametro_Id], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_PARAMETROS_RESTAURANTES_PARAMETRO_ID")
+  SoftwareHouse              SoftwareHouse?               @relation(fields: [SoftwareHouse_Id], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_SOFTWARE_HOUSE_RESTAURANTES")
+  RestaurantesUsuarios       RestaurantesUsuarios[]
+  SaldoFidelidadeCliente     SaldoFidelidadeCliente[]
+  ServidorWhatsAppLoja       ServidorWhatsAppLoja[]
+  TamanhoPizzas              TamanhoPizzas[]
+
+  @@index([SoftwareHouse_Id], map: "FK_SOFTWARE_HOUSE_RESTAURANTES")
+}
+
+model RestaurantesUsuarios {
+  Id            String       @id @db.Char(36)
+  RestauranteId String       @db.Char(36)
+  UsuarioId     String?      @db.Char(36)
+  CriadoEm      DateTime     @db.DateTime(6)
+  AlteradoEm    DateTime?    @db.DateTime(6)
+  Restaurantes  Restaurantes @relation(fields: [RestauranteId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_RESTAURANTES_RESTAURANTESUSUARIOS_RESTAURANTEID")
+  Usuarios      Usuarios?    @relation(fields: [UsuarioId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_USUARIO_RESTAURANTEUSUARIOS_USUARIOID")
+
+  @@unique([RestauranteId, UsuarioId], map: "IDX_UNICO_RESTAURANTE_USUARIO")
+  @@index([RestauranteId], map: "IX_RestaurantesUsuarios_RestauranteId")
+  @@index([UsuarioId], map: "IX_RestaurantesUsuarios_UsuarioId")
+}
+
+model SaboresPizza {
+  Id              String            @id @db.Char(36)
+  CategoriaId     String            @db.Char(36)
+  Nome            String?           @db.LongText
+  Descricao       String?           @db.LongText
+  Imagem          String?           @db.LongText
+  CodigoPDV       String?           @db.LongText
+  Status          Int               @db.SmallInt
+  CriadoEm        DateTime          @db.DateTime(6)
+  AlteradoEm      DateTime?         @db.DateTime(6)
+  PedidoSubItens  PedidoSubItens[]
+  Categorias      Categorias        @relation(fields: [CategoriaId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_CATEGORIAS_SABORESPIZZA_CATEGORIAID")
+  TamanhosSabores TamanhosSabores[]
+
+  @@index([CategoriaId], map: "IX_SaboresPizza_CategoriaId")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model SaldoFidelidadeCliente {
+  Id             String       @id @db.Char(36)
+  LojaId         String       @db.Char(36)
+  ClienteId      String       @db.Char(36)
+  CriadoEm       DateTime     @db.DateTime(6)
+  AlteradoEm     DateTime?    @db.DateTime(6)
+  ULtimaCompra   DateTime?    @db.DateTime(6)
+  TotalBeneficio Decimal      @default(0) @db.Decimal(19, 3)
+  SaldoSelo      Int
+  Restaurantes   Restaurantes @relation(fields: [LojaId], references: [Id], onDelete: Cascade, map: "FK_RESTAURANTE_SALDOFIDELIDADECLIENTE_LOJAID")
+  Usuarios       Usuarios     @relation(fields: [ClienteId], references: [Id], onDelete: Cascade, map: "FK_USUARIO_SALDOFIDELIDADECLIENTE_CLIENTEID")
+
+  @@index([LojaId], map: "FK_RESTAURANTE_SALDOFIDELIDADECLIENTE_LOJAID")
+  @@index([ClienteId], map: "FK_USUARIO_SALDOFIDELIDADECLIENTE_CLIENTEID")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model ServidorWhatsAppLoja {
+  Id              Int          @id @default(autoincrement())
+  LojaId          String       @db.Char(36)
+  CriadoEm        DateTime     @db.DateTime(6)
+  IPServidor      String       @db.VarChar(100)
+  Porta           Int
+  NomeContainer   String       @unique(map: "IDX_SERVIDORWHATSAPP_NOMECONTAINER") @db.VarChar(100)
+  NomeImagem      String       @db.VarChar(100)
+  ContainerCriado Boolean      @default(dbgenerated("b'0'")) @db.Bit(1)
+  Ativo           Boolean      @default(dbgenerated("b'1'")) @db.Bit(1)
+  NumeroConectado String?      @db.VarChar(20)
+  StatusContainer String?      @default(dbgenerated("(_utf8mb4\\'A\\')")) @db.VarChar(1)
+  ChatBotAtivo    Boolean?     @default(false) @db.Bit(1)
+  Webhook         String?      @db.VarChar(250)
+  Restaurantes    Restaurantes @relation(fields: [LojaId], references: [Id], onDelete: Cascade, map: "FK_LOJA_SERVIDOR_WHATSAPP")
+
+  @@index([LojaId], map: "FK_LOJA_SERVIDOR_WHATSAPP")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model SoftwareHouse {
+  Id                             Int            @id @default(autoincrement())
+  IntegratorId                   String         @unique(map: "INDX_SOFTWAREHOUSE_INTEGRATORID") @db.Char(36)
+  Cnpj                           String?        @unique(map: "IDX_SOFTWAREHOUSE_CNPJ") @db.VarChar(20)
+  Nome                           String?        @db.VarChar(100)
+  Contato                        String?        @db.VarChar(100)
+  Telefone                       String?        @db.VarChar(45)
+  Email                          String?        @db.VarChar(500)
+  Logradouro                     String?        @db.VarChar(100)
+  Numero                         String?        @db.VarChar(45)
+  Complemento                    String?        @db.VarChar(50)
+  Bairro                         String?        @db.VarChar(50)
+  Cidade                         String?        @db.VarChar(100)
+  Estado                         String?        @db.VarChar(2)
+  Cep                            String?        @db.VarChar(45)
+  Ativo                          Int?           @db.TinyInt
+  PercentTransactionPixPenseBank Decimal?       @db.Decimal(19, 3)
+  CriadoEm                       DateTime?      @db.DateTime(6)
+  Restaurantes                   Restaurantes[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Status {
+  Id         String    @id @db.Char(36)
+  CriadoEm   DateTime  @db.DateTime(6)
+  AlteradoEm DateTime? @db.DateTime(6)
+  Descricao  String    @db.VarChar(50)
+  Valor      Int?
+  Nome       String?   @db.VarChar(50)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model StatusCampanha {
+  Id       Int        @id
+  Nome     String     @db.VarChar(50)
+  Cor      String?    @db.VarChar(50)
+  Campanha Campanha[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model StatusListaDistribuicao {
+  Id                Int                 @id
+  Descricao         String              @db.VarChar(50)
+  ListaDistribuicao ListaDistribuicao[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model TamanhoPizzas {
+  Id              String            @id @db.Char(36)
+  Descricao       String?           @db.LongText
+  CriadoEm        DateTime          @db.DateTime(6)
+  AlteradoEm      DateTime?         @db.DateTime(6)
+  ProdutoId       String            @db.Char(36)
+  RestauranteId   String            @db.Char(36)
+  Valor           Decimal           @default(0.000) @db.Decimal(19, 3)
+  Ativo           Int?              @default(1) @db.TinyInt
+  PrecoPDV        Decimal           @default(0.000) @db.Decimal(19, 3)
+  PedidoItens     PedidoItens[]
+  Produtos        Produtos          @relation(fields: [ProdutoId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_PRODUTOS_TAMANHOPIZZAS_PRODUTOID")
+  Restaurantes    Restaurantes      @relation(fields: [RestauranteId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_RESTAURANTES_TAMANHOPIZZAS_RESTAURANTEID")
+  TamanhosSabores TamanhosSabores[]
+
+  @@index([ProdutoId], map: "IX_TamanhoPizzas_ProdutoId")
+  @@index([RestauranteId], map: "IX_TamanhoPizzas_RestauranteId")
+}
+
+model TamanhosSabores {
+  Id             String        @id @db.Char(36)
+  SaborPizzaId   String        @db.Char(36)
+  TamanhoPizzaId String        @db.Char(36)
+  Preco          Float
+  CriadoEm       DateTime      @db.DateTime(6)
+  AlteradoEm     DateTime?     @db.DateTime(6)
+  SaboresPizza   SaboresPizza  @relation(fields: [SaborPizzaId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_SABORESPIZZA_TAMANHOSABORES_SABORPIZZAID")
+  TamanhoPizzas  TamanhoPizzas @relation(fields: [TamanhoPizzaId], references: [Id], onDelete: NoAction, onUpdate: NoAction, map: "FK_TAMANHOPIZZA_TAMANHOSABORES_TAMANHOPIZZAID")
+
+  @@index([SaborPizzaId], map: "IX_TamanhosSabores_SaborPizzaId")
+  @@index([TamanhoPizzaId], map: "IX_TamanhosSabores_TamanhoPizzaId")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model TransacaoPagamentoOnLine {
+  Id                          String   @id @db.Char(36)
+  RestauranteId               String?  @db.Char(36)
+  CriadoEm                    DateTime @db.DateTime(6)
+  IdPagamento                 Int
+  IdCorrentista               Int
+  Alias                       String   @db.VarChar(100)
+  Valor                       Decimal  @db.Decimal(19, 3)
+  MultaPercentual             Decimal? @db.Decimal(19, 3)
+  JurosPercentual             Decimal? @db.Decimal(19, 3)
+  DescontoPercentual          Decimal? @db.Decimal(19, 3)
+  CallbackAddress             String?  @db.VarChar(500)
+  QrCode                      String?  @db.VarChar(500)
+  ValorPago                   Decimal  @default(0.000) @db.Decimal(19, 3)
+  Tipo                        String?  @db.VarChar(50)
+  HashPix                     String   @default("0") @db.VarChar(50)
+  MateraTransactionId         String?  @db.VarChar(100)
+  MateraReference             String?  @db.VarChar(100)
+  Pago                        Boolean  @default(dbgenerated("b'0'")) @db.Bit(1)
+  FeeMQP                      Decimal  @default(1.000) @db.Decimal(19, 3)
+  FeeDistributor              Decimal  @default(0.0000000000) @db.Decimal(19, 10)
+  DistributorDocument         String   @default("1") @db.VarChar(50)
+  PagoDistributor             Boolean  @default(dbgenerated("b'0'")) @db.Bit(1)
+  FeeProvider                 Decimal  @default(0.000) @db.Decimal(19, 3)
+  Data                        String?  @db.VarChar(20)
+  NumeroDocCliente            String?  @db.VarChar(50)
+  ExpiracaoSegundos           Int      @default(0)
+  ExpiracaoDiasAposVencimento Int      @default(0)
+  Devolvido                   Boolean  @default(dbgenerated("b'0'")) @db.Bit(1)
+
+  @@unique([DistributorDocument, HashPix], map: "IDX_TRANSACAOPAGAMENTOONLINE")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Usuarios {
+  Id                                    String                       @id @db.Char(36)
+  Nome                                  String?                      @db.VarChar(100)
+  Imagem                                String?                      @db.VarChar(255)
+  Email                                 String?                      @unique(map: "IDX_USUARIO_EMAIL") @db.VarChar(200)
+  CPF                                   String?                      @unique(map: "IDX_USUARIO_CPF") @db.VarChar(14)
+  Telefone                              String?                      @db.VarChar(50)
+  Senha                                 String?                      @db.VarChar(300)
+  CriadoEm                              DateTime                     @db.DateTime(6)
+  AlteradoEm                            DateTime?                    @db.DateTime(6)
+  Origem                                Int                          @default(0)
+  RecuperaSenha                         Int?                         @db.TinyInt
+  ExpiraRecuraSenha                     DateTime?                    @db.DateTime(6)
+  RegistroGeral                         String?                      @db.VarChar(100)
+  Nacionalidade                         String?                      @db.VarChar(100)
+  DataNascimento                        DateTime?                    @db.DateTime(6)
+  ESuporte                              Boolean                      @default(dbgenerated("b'0'")) @db.Bit(1)
+  Cartoes                               Cartoes[]
+  ChatConversa                          ChatConversa[]
+  Cupons_Cupons_AlteradoPorIdToUsuarios Cupons[]                     @relation("Cupons_AlteradoPorIdToUsuarios")
+  Cupons_Cupons_CriadoPorIdToUsuarios   Cupons[]                     @relation("Cupons_CriadoPorIdToUsuarios")
+  Enderecos                             Enderecos[]
+  EnvioSMS                              EnvioSMS[]
+  ListaDistribuicao                     ListaDistribuicao[]
+  MovimentoFidelidadeCliente            MovimentoFidelidadeCliente[]
+  Pedidos                               Pedidos[]
+  PedidosDescontos                      PedidosDescontos[]
+  RestaurantesUsuarios                  RestaurantesUsuarios[]
+  SaldoFidelidadeCliente                SaldoFidelidadeCliente[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model UsuariosHistoricoSenha {
+  Id        String   @id @db.Char(36)
+  UsuarioId String   @db.Char(36)
+  Senha     String   @db.VarChar(45)
+  CriadoEm  DateTime @db.DateTime(6)
+
+  @@index([UsuarioId], map: "IDX_USUARIOSHSTSENHA_USUARIOID")
+}
+
+model UsuariosRecuperaSenha {
+  Id                    String   @id @db.Char(36)
+  UsuarioId             String   @db.Char(36)
+  Token                 String   @unique(map: "Token_UNIQUE") @db.VarChar(100)
+  CriadoEm              DateTime @db.DateTime(6)
+  ExpiraRecuperaSenha   DateTime @db.DateTime(6)
+  LinkFormRecuperaSenha String   @db.VarChar(300)
+  IpOrigem              String?  @db.VarChar(45)
+  IsTokenUse            Int?     @default(0) @db.TinyInt
+
+  @@index([UsuarioId], map: "IDX_UsuariosRecuperaSenha")
+}
+
+model EfMigrationshistory {
+  MigrationId    String @id @db.VarChar(95)
+  ProductVersion String @db.VarChar(32)
+
+  @@map("__EfMigrationshistory")
+}
+
+model coordenadas {
+  Latitude      Float
+  Longitude     Float
+  Id            String       @id @db.Char(36)
+  CriadoEm      DateTime     @db.DateTime(6)
+  AlteradoEm    DateTime?    @db.DateTime(6)
+  AreaEntregaId String       @db.Char(36)
+  AreasEntrega  AreasEntrega @relation(fields: [AreaEntregaId], references: [Id], onDelete: Cascade, map: "FK_AREAENTREGA_COORDENADAS_AREAENTREGAID")
+
+  @@index([AreaEntregaId], map: "IX_Coordenada_AreaEntregaId")
+}
+
+model ChatConfiguracoes {
+  Id                              String        @id @db.Char(36)
+  RestauranteId                   String?       @db.Char(36)
+  ResponstaErro                   String?       @db.Text
+  PercentualIdentificacaoMensagem Float?
+  Restaurantes                    Restaurantes? @relation(fields: [RestauranteId], references: [Id], onDelete: Cascade, map: "FK_RESTAURANTE_CHATCONFIGURACAO_RESTAURANTEID")
+
+  @@index([RestauranteId], map: "FK_RESTAURANTE_CHATCONFIGURACAO_RESTAURANTEID")
+}
+
+model ChatConversa {
+  Id               String             @id @db.VarChar(36)
+  Status           String             @db.VarChar(255)
+  RestauranteId    String             @db.Char(36)
+  UsuarioId        String             @db.Char(36)
+  CriadoEm         DateTime           @default(now()) @db.DateTime(6)
+  AlteradoEm       DateTime           @default(now()) @db.DateTime(6)
+  Restaurantes     Restaurantes       @relation(fields: [RestauranteId], references: [Id], onDelete: Cascade, map: "FK_RESTAURANTE_CHATCONVERSA_RESTAURANTEID")
+  Usuarios         Usuarios           @relation(fields: [UsuarioId], references: [Id], onDelete: Cascade, map: "FK_USUARIO_CHATCONVERSA_USUARIOID")
+  ChatMensagemErro ChatMensagemErro[]
+
+  @@index([RestauranteId], map: "FK_RESTAURANTE_CHATCONVERSA_RESTAURANTEID")
+  @@index([UsuarioId], map: "FK_USUARIO_CHATCONVERSA_USUARIOID")
+}
+
+model ChatMensagemErro {
+  Id             String       @id @db.VarChar(36)
+  ChatConversaId String       @db.VarChar(36)
+  Mensagem       String       @db.Text
+  ChatConversa   ChatConversa @relation(fields: [ChatConversaId], references: [Id], onDelete: Cascade, map: "FK_CHATCONVERSA_CHATMENSAGEMERRO_CHATCONVERSAID")
+
+  @@index([ChatConversaId], map: "FK_CHATCONVERSA_CHATMENSAGEMERRO_CHATCONVERSAID")
+}
+
+model ChatRegrasMensagens {
+  Id              String        @id @db.Char(36)
+  RestauranteId   String?       @db.Char(36)
+  Chave           String        @db.VarChar(255)
+  PadroesMensagem String        @db.Text
+  Restaurantes    Restaurantes? @relation(fields: [RestauranteId], references: [Id], onDelete: Cascade, map: "FK_RESTAURANTE_CHATREGRAMENSAGEMRESTAURANTEID")
+
+  @@index([RestauranteId], map: "FK_RESTAURANTE_CHATREGRAMENSAGEMRESTAURANTEID")
+}
+
+model ChatTemplateResposta {
+  Id               String        @id @db.Char(36)
+  RestauranteId    String?       @db.Char(36)
+  Nome             String        @db.VarChar(255)
+  Chave            String        @db.VarChar(255)
+  TemplateResposta String?       @db.Text
+  Restaurantes     Restaurantes? @relation(fields: [RestauranteId], references: [Id], onDelete: Cascade, map: "FK_RESTAURANTE_CHATTEMPLATERESPOSTA_RESTAURANTEID")
+
+  @@index([RestauranteId], map: "FK_RESTAURANTE_CHATTEMPLATERESPOSTA_RESTAURANTEID")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model ChatTemplateRespostaBackup {
+  Id               String  @id @db.Char(36)
+  Nome             String  @db.VarChar(255)
+  Chave            String  @db.VarChar(255)
+  TemplateResposta String  @db.Text
+  RestauranteId    String? @db.Char(36)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model TipoDispositivo {
+  Id              String            @id @db.Char(36)
+  Codigo          String            @unique(map: "IDX_TIPODISPOSITIVO_CODIGO") @db.VarChar(50)
+  Descricao       String            @db.VarChar(50)
+  Ativo           Boolean           @default(dbgenerated("b'1'")) @db.Bit(1)
+  DispositivoLoja DispositivoLoja[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model TipoPedido {
+  Id        String    @id @db.Char(36)
+  Codigo    Int       @unique(map: "IDX_TIPOPEDIDO_CODIGO")
+  Descricao String    @db.VarChar(50)
+  Pedidos   Pedidos[]
+}
+
+/// This model or at least one of model  fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model CaixaLancamento {
+  Id                        String                    @id @db.Char(36)
+  CaixaId                   String                    @db.Char(36)
+  FormaPagamentoId          String                    @db.Char(36)
+  CriadoEm                  DateTime                  @db.DateTime(6)
+  Valor                     Decimal                   @default(0) @db.Decimal(19, 3)
+  Tipo                      String                    @db.Char(1)
+  Descricao                 String?                   @db.VarChar(50)
+  CaixaLancamento           Caixa                     @relation("CaixaLancamentoToCaixaLancamento", fields: [CaixaId], references: [Id], onDelete: Cascade, map: "FK_CAIXA_CAIXALANCAMENTO_CAIXAID")
+  RestauranteFormaPagamento RestauranteFormaPagamento @relation(fields: [FormaPagamentoId], references: [Id], onDelete: Cascade, map: "FK_FORMAPAGAMENTO_CAIXALANCAMENTO_FORMAPAGAMENTOID")
+
+  @@index([CaixaId], map: "FK_CAIXA_CAIXALANCAMENTO_CAIXAID")
+  @@index([FormaPagamentoId], map: "FK_FORMAPAGAMENTO_CAIXALANCAMENTO_FORMAPAGAMENTOID")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model DispositivoLoja {
+  Id                 String          @id @db.Char(36)
+  RestauranteId      String          @db.Char(36)
+  TipoDispositivoId  String          @db.Char(36)
+  Alias              String?         @db.VarChar(50)
+  NebulaCode         String?         @db.VarChar(20)
+  NumeroSerie        String          @db.VarChar(50)
+  NomeDispositivo    String          @db.VarChar(100)
+  CriadoEm           DateTime        @db.DateTime(6)
+  AlteradoEm         DateTime?       @db.DateTime(6)
+  Adquirente         String?         @db.VarChar(50)
+  VersaoApp          String?         @db.VarChar(50)
+  Marca              String?         @db.VarChar(50)
+  Modelo             String?         @db.VarChar(50)
+  SistemaOperacional String?         @db.VarChar(50)
+  VersaoOS           String?         @db.VarChar(20)
+  Memoria            String?         @db.VarChar(20)
+  Processador        String?         @db.VarChar(40)
+  MacAddressRede     String?         @db.VarChar(30)
+  HardDiskSerial     String?         @db.VarChar(50)
+  HardDiskTotal      String?         @db.VarChar(50)
+  HardDiskLivre      String?         @db.VarChar(50)
+  IPAddress          String?         @db.VarChar(20)
+  IMEI               String?         @db.VarChar(40)
+  TipoConexao        String?         @db.VarChar(50)
+  UltimoAcesso       DateTime?       @db.DateTime(6)
+  Ativo              Boolean         @default(true) @db.Bit(1)
+  Caixa              Caixa[]
+  Restaurantes       Restaurantes    @relation(fields: [RestauranteId], references: [Id], onDelete: Cascade, map: "FK_RESTAURANTE_DISPOSITIVOLOJA_RESTAURANTEID")
+  TipoDispositivo    TipoDispositivo @relation(fields: [TipoDispositivoId], references: [Id], onDelete: Cascade, map: "FK_TIPODISPOSITIVO_DISPOSITIVOLOJA_TIPODISPOSITIVOID")
+  Lancamento         Lancamento[]
+  Pedidos            Pedidos[]
+
+  @@index([RestauranteId], map: "FK_RESTAURANTE_DISPOSITIVOLOJA_RESTAURANTEID")
+  @@index([TipoDispositivoId], map: "FK_TIPODISPOSITIVO_DISPOSITIVOLOJA_TIPODISPOSITIVOID")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model TipoColaborador {
+  Id          String        @id @db.Char(36)
+  Descricao   String        @db.VarChar(50)
+  Codigo      Int
+  Colaborador Colaborador[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model TipoLancamento {
+  Id         String       @id @db.Char(36)
+  Codigo     Int
+  DESCRICAO  String       @db.VarChar(50)
+  Lancamento Lancamento[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Caixa {
+  Id                    String            @id @db.Char(36)
+  RestauranteId         String            @db.Char(36)
+  OperadorId            String            @db.Char(36)
+  DispositivoId         String?           @db.Char(36)
+  Sessao                Int
+  SessaoOffline         Int?
+  CriadoEm              DateTime          @db.DateTime(6)
+  AbertoEm              DateTime          @db.DateTime(6)
+  FechadoEm             DateTime?         @db.DateTime(6)
+  ValorAbertura         Decimal           @default(0) @db.Decimal(19, 3)
+  ValorRegistrado       Decimal?          @db.Decimal(19, 3)
+  ValorGaveta           Decimal?          @db.Decimal(19, 3)
+  Colaborador           Colaborador       @relation(fields: [OperadorId], references: [Id], onDelete: Cascade, map: "FK_COLABORADOR_CAIXALOJA_COLABORADORID")
+  DispositivoLoja       DispositivoLoja?  @relation(fields: [DispositivoId], references: [Id], onDelete: Cascade, map: "FK_DISPOSITIVO_CAIXALOJA_DISPOSITIVOID")
+  Restaurantes          Restaurantes      @relation(fields: [RestauranteId], references: [Id], onDelete: Cascade, map: "FK_LOJA_CAIXALOJA_RESTAURANTEID")
+  other_CaixaLancamento CaixaLancamento[] @relation("CaixaLancamentoToCaixaLancamento")
+  Lancamento            Lancamento[]
+  Pedidos               Pedidos[]
+
+  @@unique([RestauranteId, Sessao], map: "IDX_CAIXA_LOJA_SESSAO")
+  @@index([OperadorId], map: "FK_COLABORADOR_CAIXALOJA_COLABORADORID")
+  @@index([DispositivoId], map: "FK_DISPOSITIVO_CAIXALOJA_DISPOSITIVOID")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Colaborador {
+  Id                                                  String          @id @db.Char(36)
+  TipoColaboradorId                                   String          @db.Char(36)
+  RestauranteId                                       String          @db.Char(36)
+  CriadoEm                                            DateTime        @db.DateTime(6)
+  AlteradoEm                                          DateTime?       @db.DateTime(6)
+  Usuario                                             String?         @db.VarChar(50)
+  Senha                                               String?         @db.VarChar(100)
+  Nome                                                String          @db.VarChar(100)
+  Cpf                                                 String?         @db.VarChar(14)
+  DataNascimento                                      DateTime?       @db.DateTime(6)
+  Celular                                             String?         @db.VarChar(20)
+  Ativo                                               Boolean         @db.Bit(1)
+  Caixa                                               Caixa[]
+  Restaurantes                                        Restaurantes    @relation(fields: [RestauranteId], references: [Id], onDelete: Cascade, map: "FK_LOJA_COLABORADORLOJA_RESTAURANTEID")
+  TipoColaborador                                     TipoColaborador @relation(fields: [TipoColaboradorId], references: [Id], onDelete: Cascade, map: "FK_TIPOCOLADORADOR_COLABORADORLOJA_TIPOCOLABORADORID")
+  Lancamento_Lancamento_OperadorIdToColaborador       Lancamento[]    @relation("Lancamento_OperadorIdToColaborador")
+  Lancamento_Lancamento_TransferidoPorIdToColaborador Lancamento[]    @relation("Lancamento_TransferidoPorIdToColaborador")
+  Pedidos_Pedidos_GerenteIdToColaborador              Pedidos[]       @relation("Pedidos_GerenteIdToColaborador")
+  Pedidos                                             Pedidos[]
+
+  @@index([RestauranteId, Usuario], map: "IDX_OPERADOR_CAIXA_LOJA_USUARIO")
+  @@index([TipoColaboradorId], map: "FK_TIPOCOLADORADOR_COLABORADORLOJA_TIPOCOLABORADORID")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Lancamento {
+  Id                                                          String                    @id @db.Char(36)
+  RestauranteId                                               String                    @db.Char(36)
+  TipoLancamentoId                                            String                    @db.Char(36)
+  FormaPagamentoId                                            String                    @db.Char(36)
+  DispositivoId                                               String?                   @db.Char(36)
+  CaixaId                                                     String?                   @db.Char(36)
+  OperadorId                                                  String?                   @db.Char(36)
+  PedidoId                                                    String?                   @db.Char(36)
+  LancamentoDestinoId                                         String?                   @db.Char(36)
+  LancamentoOrigemId                                          String?                   @db.Char(36)
+  TransferidoPorId                                            String?                   @db.Char(36)
+  CriadoEm                                                    DateTime                  @db.DateTime(6)
+  TransferidoEm                                               DateTime?                 @db.DateTime(6)
+  Valor                                                       Decimal                   @db.Decimal(19, 3)
+  ValorDesconto                                               Decimal?                  @db.Decimal(19, 3)
+  PercentualDesconto                                          Decimal?                  @db.Decimal(19, 3)
+  Descricao                                                   String?                   @db.VarChar(100)
+  HashPix                                                     String?                   @db.VarChar(255)
+  AliasPix                                                    String?                   @db.VarChar(100)
+  MateraTransactionId                                         String?                   @db.VarChar(50)
+  Caixa                                                       Caixa?                    @relation(fields: [CaixaId], references: [Id], onDelete: Cascade, map: "FK_CAIXA_LANCAMENTOFINANCEIRO_CAIXAID")
+  Colaborador_Lancamento_OperadorIdToColaborador              Colaborador?              @relation("Lancamento_OperadorIdToColaborador", fields: [OperadorId], references: [Id], onDelete: Cascade, map: "FK_COLABORADOR_LANCAMENTOFINANCEIRO_COLABORADORID")
+  Colaborador_Lancamento_TransferidoPorIdToColaborador        Colaborador?              @relation("Lancamento_TransferidoPorIdToColaborador", fields: [TransferidoPorId], references: [Id], onDelete: Cascade, map: "FK_COLABORADOR_LANCAMENTOFINANCEIRO_TRANSFERIDODPORID")
+  DispositivoLoja                                             DispositivoLoja?          @relation(fields: [DispositivoId], references: [Id], onDelete: Cascade, map: "FK_DISPOSITIVO_LANCAMENTOFINANCEIRO_DISPOSITIVOID")
+  RestauranteFormaPagamento                                   RestauranteFormaPagamento @relation(fields: [FormaPagamentoId], references: [Id], onDelete: Cascade, map: "FK_FORMAPAGAMENTO_LANCAMENTOFINANCEIRO_FORMAPAGAMENTOID")
+  Lancamento_Lancamento_LancamentoDestinoIdToLancamento       Lancamento?               @relation("Lancamento_LancamentoDestinoIdToLancamento", fields: [LancamentoDestinoId], references: [Id], onDelete: Cascade, map: "FK_LACANCAMENTO_LANCAMENTOFINANCEIRO_LANCAMENTODESTINOID")
+  other_Lancamento_Lancamento_LancamentoDestinoIdToLancamento Lancamento[]              @relation("Lancamento_LancamentoDestinoIdToLancamento")
+  Lancamento_Lancamento_LancamentoOrigemIdToLancamento        Lancamento?               @relation("Lancamento_LancamentoOrigemIdToLancamento", fields: [LancamentoOrigemId], references: [Id], onDelete: Cascade, map: "FK_LACANCAMENTO_LANCAMENTOFINANCEIRO_LANCAMENTOORIGEMID")
+  other_Lancamento_Lancamento_LancamentoOrigemIdToLancamento  Lancamento[]              @relation("Lancamento_LancamentoOrigemIdToLancamento")
+  Pedidos                                                     Pedidos?                  @relation(fields: [PedidoId], references: [Id], onDelete: Cascade, map: "FK_PEDIDO_LANCAMENTOFINANCEIRO_PEDIDOID")
+  Restaurantes                                                Restaurantes              @relation(fields: [RestauranteId], references: [Id], onDelete: Cascade, map: "FK_RESTAURANTE_LANCAMENTOFINANCEIRO_RESTAURANTEID")
+  TipoLancamento                                              TipoLancamento            @relation(fields: [TipoLancamentoId], references: [Id], onDelete: Cascade, map: "FK_TIPOLANCAMENTO_LANCAMENTOFINANCEIRO_TIPOLANCAMENTOID")
+
+  @@index([CaixaId], map: "FK_CAIXA_LANCAMENTOFINANCEIRO_CAIXAID")
+  @@index([OperadorId], map: "FK_COLABORADOR_LANCAMENTOFINANCEIRO_COLABORADORID")
+  @@index([TransferidoPorId], map: "FK_COLABORADOR_LANCAMENTOFINANCEIRO_TRANSFERIDODPORID")
+  @@index([FormaPagamentoId], map: "FK_FORMAPAGAMENTO_LANCAMENTOFINANCEIRO_FORMAPAGAMENTOID")
+  @@index([RestauranteId], map: "FK_RESTAURANTE_LANCAMENTOFINANCEIRO_RESTAURANTEID")
+  @@index([TipoLancamentoId], map: "FK_TIPOLANCAMENTO_LANCAMENTOFINANCEIRO_TIPOLANCAMENTOID")
+  @@index([DispositivoId], map: "FK_DISPOSITIVO_LANCAMENTOFINANCEIRO_DISPOSITIVOID")
+  @@index([LancamentoDestinoId], map: "FK_LACANCAMENTO_LANCAMENTOFINANCEIRO_LANCAMENTODESTINOID")
+  @@index([LancamentoOrigemId], map: "FK_LACANCAMENTO_LANCAMENTOFINANCEIRO_LANCAMENTOORIGEMID")
+  @@index([PedidoId], map: "FK_PEDIDO_LANCAMENTOFINANCEIRO_PEDIDOID")
+}
+
+model AspNetRoleClaims {
+  Id          Int         @id @default(autoincrement())
+  RoleId      String      @db.VarChar(255)
+  ClaimType   String?     @db.LongText
+  ClaimValue  String?     @db.LongText
+  AspNetRoles AspNetRoles @relation(fields: [RoleId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_AspNetRoleClaims_AspNetRoles_RoleId")
+
+  @@index([RoleId], map: "IX_AspNetRoleClaims_RoleId")
+}
+
+model AspNetRoles {
+  Id               String             @id @db.VarChar(255)
+  Name             String?            @db.VarChar(256)
+  NormalizedName   String?            @unique(map: "RoleNameIndex") @db.VarChar(256)
+  ConcurrencyStamp String?            @db.LongText
+  AspNetRoleClaims AspNetRoleClaims[]
+  AspNetUserRoles  AspNetUserRoles[]
+}
+
+model AspNetUserClaims {
+  Id          Int         @id @default(autoincrement())
+  UserId      String      @db.VarChar(255)
+  ClaimType   String?     @db.LongText
+  ClaimValue  String?     @db.LongText
+  AspNetUsers AspNetUsers @relation(fields: [UserId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_AspNetUserClaims_AspNetUsers_UserId")
+
+  @@index([UserId], map: "IX_AspNetUserClaims_UserId")
+}
+
+model AspNetUserLogins {
+  LoginProvider       String      @db.VarChar(255)
+  ProviderKey         String      @db.VarChar(255)
+  ProviderDisplayName String?     @db.LongText
+  UserId              String      @db.VarChar(255)
+  AspNetUsers         AspNetUsers @relation(fields: [UserId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_AspNetUserLogins_AspNetUsers_UserId")
+
+  @@id([LoginProvider, ProviderKey])
+  @@index([UserId], map: "IX_AspNetUserLogins_UserId")
+}
+
+model AspNetUserRoles {
+  UserId      String      @db.VarChar(255)
+  RoleId      String      @db.VarChar(255)
+  AspNetRoles AspNetRoles @relation(fields: [RoleId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_AspNetUserRoles_AspNetRoles_RoleId")
+  AspNetUsers AspNetUsers @relation(fields: [UserId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_AspNetUserRoles_AspNetUsers_UserId")
+
+  @@id([UserId, RoleId])
+  @@index([RoleId], map: "IX_AspNetUserRoles_RoleId")
+}
+
+model AspNetUserTokens {
+  UserId        String      @db.VarChar(255)
+  LoginProvider String      @db.VarChar(255)
+  Name          String      @db.VarChar(255)
+  Value         String?     @db.LongText
+  AspNetUsers   AspNetUsers @relation(fields: [UserId], references: [Id], onDelete: Cascade, onUpdate: NoAction, map: "FK_AspNetUserTokens_AspNetUsers_UserId")
+
+  @@id([UserId, LoginProvider, Name])
+}
+
+model AspNetUsers {
+  Id                   String             @id @db.VarChar(255)
+  TwoFactorEnabled     Boolean
+  UserName             String?            @db.VarChar(256)
+  NormalizedUserName   String?            @unique(map: "UserNameIndex") @db.VarChar(256)
+  Email                String?            @db.VarChar(256)
+  NormalizedEmail      String?            @db.VarChar(256)
+  EmailConfirmed       Boolean
+  PasswordHash         String?            @db.LongText
+  SecurityStamp        String?            @db.LongText
+  ConcurrencyStamp     String?            @db.LongText
+  PhoneNumber          String?            @db.LongText
+  PhoneNumberConfirmed Boolean
+  LockoutEnd           DateTime?          @db.DateTime(6)
+  LockoutEnabled       Boolean
+  AccessFailedCount    Int
+  AspNetUserClaims     AspNetUserClaims[]
+  AspNetUserLogins     AspNetUserLogins[]
+  AspNetUserRoles      AspNetUserRoles[]
+  AspNetUserTokens     AspNetUserTokens[]
+
+  @@index([NormalizedEmail], map: "EmailIndex")
+}
+
+model EFMigrationsHistory {
+  MigrationId    String @id @db.VarChar(150)
+  ProductVersion String @db.VarChar(32)
+
+  @@map("__EFMigrationsHistory")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Estado {
+  Id         String      @id @db.Char(2)
+  CodigoIBGE Int
+  Descricao  String      @db.VarChar(100)
+  Municipio  Municipio[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Municipio {
+  Id         String @id @db.Char(36)
+  EstadoId   String @db.Char(2)
+  CodigoIBGE Int
+  Descricao  String @db.VarChar(100)
+  Estado     Estado @relation(fields: [EstadoId], references: [Id], onDelete: Cascade, map: "FK_Municipio_Estado")
+
+  @@index([EstadoId], map: "FK_Municipio_Estado")
+}
