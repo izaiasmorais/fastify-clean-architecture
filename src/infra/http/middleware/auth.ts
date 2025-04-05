@@ -1,25 +1,13 @@
-import { FastifyInstance } from "fastify";
-import { fastifyPlugin } from "fastify-plugin";
-import { CustomError } from "../../../core/errors/custom-error";
+import { FastifyReply, FastifyRequest } from "fastify";
 
-interface JwtVerifyResponse {
-	payload: { sub: string; scope: "pdvflow" | "pdvmobile" | "toten-auto" };
-	iat: number;
-	exp: number;
+export async function verifyJwt(request: FastifyRequest, reply: FastifyReply) {
+	try {
+		await request.jwtVerify();
+	} catch (err) {
+		return reply.status(401).send({
+			success: false,
+			errors: ["Não autorizado"],
+			data: null,
+		});
+	}
 }
-
-export const auth = fastifyPlugin(async (app: FastifyInstance) => {
-	app.addHook("preHandler", async (request) => {
-		request.getCurrentStoreId = async () => {
-			try {
-				const {
-					payload: { sub },
-				} = await request.jwtVerify<JwtVerifyResponse>();
-
-				return sub;
-			} catch {
-				throw new CustomError(401, ["Token Inváldo"]);
-			}
-		};
-	});
-});

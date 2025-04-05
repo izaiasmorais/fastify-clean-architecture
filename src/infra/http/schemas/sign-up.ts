@@ -22,15 +22,3 @@ export const signUpRequestBodySchema = z.object({
 		{ message: "Documento Inválido" }
 	),
 });
-
-export const signUpResponseSchema = z.object({
-	user: z.object({
-		id: z.string().uuid(),
-		name: z.string(),
-		email: z.string().email(),
-		phone: z.number(),
-		document: z.number(),
-		password: z.string(),
-		role: z.enum(["COMPANY", "CONSULTANT", "CITY"]),
-	}),
-});

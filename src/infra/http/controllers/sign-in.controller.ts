@@ -24,7 +24,6 @@ export async function signIn(app: FastifyInstance) {
 						"Success"
 					),
 					400: defaultErrorResponseSchema.describe("Bad Request"),
-					401: defaultErrorResponseSchema.describe("Unauthorized"),
 				},
 			},
 		},

@@ -4,4 +4,5 @@ export interface UserRepository {
 	create(user: UserProps): Promise<void>;
 	findByEmail(email: string): Promise<User | null>;
 	findByDocument(document: number): Promise<User | null>;
+	findById(id: string): Promise<User | null>;
 }

@@ -44,6 +44,7 @@ export class SignInUseCase {
 
 		const accessToken = await this.encrypter.encrypt({
 			sub: user.id,
+			role: user.role,
 		});
 
 		return right({

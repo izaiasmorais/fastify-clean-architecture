@@ -5,11 +5,11 @@ export class PrismaUserMapper {
 	static toDomain(raw: PrismaUser): User {
 		return User.create({
 			id: raw.id,
-			document: raw.document,
+			document: parseInt(raw.document.toString()),
 			email: raw.email,
 			password: raw.password,
 			name: raw.name,
-			phone: raw.phone,
+			phone: parseInt(raw.phone.toString()),
 			role: raw.role as UserRole,
 		});
 	}

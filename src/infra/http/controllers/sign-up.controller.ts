@@ -5,10 +5,8 @@ import {
 	defaultErrorResponseSchema,
 	defaultSuccessResponseSchema,
 } from "../schemas/http";
-import {
-	signUpRequestBodySchema,
-	signUpResponseSchema,
-} from "../schemas/sign-up";
+import { signUpRequestBodySchema } from "../schemas/sign-up";
+import { z } from "zod";
 
 export async function signUp(app: FastifyInstance) {
 	app.withTypeProvider<ZodTypeProvider>().post(
@@ -20,9 +18,7 @@ export async function signUp(app: FastifyInstance) {
 				summary: "Register a new user",
 				body: signUpRequestBodySchema.describe("Sign up request body"),
 				response: {
-					201: defaultSuccessResponseSchema(signUpResponseSchema).describe(
-						"Created"
-					),
+					201: defaultSuccessResponseSchema(z.null()).describe("Created"),
 					400: defaultErrorResponseSchema.describe("Bad Request"),
 				},
 			},

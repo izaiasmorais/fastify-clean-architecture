@@ -8,12 +8,11 @@ export class JwtEncrypter implements Encrypter {
 	async encrypt(payload: Record<string, unknown>): Promise<string> {
 		const token = await this.reply.jwtSign(
 			{
-				payload,
+				role: payload.role,
+				sub: payload.sub,
 			},
 			{
-				sign: {
-					expiresIn: env.ENV_EXPIRES_IN,
-				},
+				expiresIn: env.ENV_EXPIRES_IN,
 			}
 		);
 
