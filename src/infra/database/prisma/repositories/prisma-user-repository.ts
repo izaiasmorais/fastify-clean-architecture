@@ -1,37 +1,27 @@
-import { getMd5Hash } from "../../../../core/utils/get-md5-hash";
-import {
-	UserRepository,
-	FindUserByEmailAndPasswordResponse,
-} from "../../../../domain/repositories/users-repository";
+import { UserRepository } from "../../../../domain/repositories/users-repository";
 import { prisma } from "../prisma";
+import { User } from "../../../../domain/entities/user";
+import { PrismaUserMapper } from "../mappers/prisma-user-mapper";
 
 export class PrismaUserRepository implements UserRepository {
-	async findUserByEmailAndPassword(
-		clientId: string,
-		clientSecret: string,
-		clientDocument: string
-	): Promise<FindUserByEmailAndPasswordResponse | null> {
-		const user = await prisma.usuarios.findFirst({
-			where: {
-				Email: clientId,
-				Senha: getMd5Hash(clientSecret),
+	async create(user: User): Promise<void> {
+		await prisma.user.create({
+			data: {
+				id: user.id,
+				name: user.name,
+				email: user.email,
+				phone: user.phone,
+				document: user.document,
+				password: user.password,
+				role: user.role,
 			},
-			select: {
-				RestaurantesUsuarios: {
-					where: {
-						Restaurantes: {
-							CNPJ: clientDocument,
-							Ativo: true,
-						},
-					},
-					select: {
-						Restaurantes: {
-							select: {
-								Id: true,
-							},
-						},
-					},
-				},
+		});
+	}
+
+	async findByEmail(email: string): Promise<User | null> {
+		const user = await prisma.user.findUnique({
+			where: {
+				email,
 			},
 		});
 
@@ -39,14 +29,20 @@ export class PrismaUserRepository implements UserRepository {
 			return null;
 		}
 
-		return {
-			RestaurantesUsuarios: [
-				{
-					Restaurantes: {
-						Id: user.RestaurantesUsuarios[0].Restaurantes.Id.toString(),
-					},
-				},
-			],
-		};
+		return PrismaUserMapper.toDomain(user);
+	}
+
+	async findByDocument(document: number): Promise<User | null> {
+		const user = await prisma.user.findUnique({
+			where: {
+				document,
+			},
+		});
+
+		if (!user) {
+			return null;
+		}
+
+		return PrismaUserMapper.toDomain(user);
 	}
 }

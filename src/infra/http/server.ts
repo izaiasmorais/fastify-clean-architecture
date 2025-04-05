@@ -11,21 +11,7 @@ import {
 } from "fastify-type-provider-zod";
 import { env } from "../env/env";
 import { errorHandler } from "./error-handler";
-import { signIn } from "./controllers/auth/sign-in.controller";
-import { getStoreDetails } from "./controllers/get-store-details.controller";
-import { registerStore } from "./controllers/register-store";
-import { bankTellersRoutes } from "./controllers/bank-tellers/bank-tellers.routes";
-import { devicesRoutes } from "./controllers/devices/devices.routes";
-import { ordersRoutes } from "./controllers/orders/orders.routes";
-import { collaboratorsRoutes } from "./controllers/collaborators/collaborators.routes";
-import { launchesRoutes } from "./controllers/launches/launches.routes";
-import { citiesRoutes } from "./controllers/cities/cities.routes";
-import { pizzaSizesRoutes } from "./controllers/pizza-sizes/pizza-sizes.routes";
-import { availabilityRoutes } from "./controllers/availability/availability.routes";
-import { paymentMethodsRoutes } from "./controllers/payment-methods/payment-method.routes";
-import { groupsRoutes } from "./controllers/groups/groups.routes";
-import { productsRoutes } from "./controllers/products/products-routes";
-import { statusRoutes } from "./controllers/status/status.routes";
+import { signUp } from "./controllers/sign-up.controller";
 
 const port = env.ENV_PORT;
 const version = "2.0.1 - Release 6";
@@ -63,23 +49,7 @@ app.register(fastifyJwt, {
 	secret: "supersecret",
 });
 
-app.register(signIn);
-app.register(availabilityRoutes);
-app.register(bankTellersRoutes);
-app.register(citiesRoutes);
-app.register(collaboratorsRoutes);
-app.register(devicesRoutes);
-app.register(groupsRoutes);
-app.register(launchesRoutes);
-app.register(ordersRoutes);
-app.register(paymentMethodsRoutes);
-app.register(pizzaSizesRoutes);
-app.register(productsRoutes);
-
-app.register(statusRoutes);
-app.register(getStoreDetails);
-app.register(registerStore);
-
+app.register(signUp);
 
 const start = async () => {
 	try {

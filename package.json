@@ -7,7 +7,7 @@
 		"dev": "tsx watch src/infra/http/server.ts",
 		"build": "tsup src !src/**/*.spec.ts !src/**/test/**/* --out-dir dist --minify",
 		"start": "node dist/infra/http/server.js",
-		"pull": "pnpm prisma db pull",
+		"migrate": "pnpm prisma migrate dev",
 		"generate": "pnpm prisma generate",
 		"studio": "pnpm prisma studio -b chrome -p 5174",
 		"test": "vitest run",
@@ -17,7 +17,9 @@
 		"test:e2e-cov": "vitest run --coverage --config ./vitest.config.e2e.mts",
 		"test:debug": "vitest --inspect-brk --inspect --logHeapUsage --threads=false",
 		"test:e2e": "vitest run --config ./vitest.config.e2e.mts",
-		"test:e2e-ui": "vitest --ui --config ./vitest.config.e2e.mts"
+		"test:e2e-ui": "vitest --ui --config ./vitest.config.e2e.mts",
+		"lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+		"lint:fix": "eslint src --ext ts,tsx --fix"
 	},
 	"keywords": [],
 	"author": "",
@@ -25,9 +27,13 @@
 	"devDependencies": {
 		"@types/bcrypt": "^5.0.2",
 		"@types/node": "^22.7.0",
+		"@typescript-eslint/eslint-plugin": "^7.2.0",
+		"@typescript-eslint/parser": "^7.2.0",
 		"@vitest/coverage-v8": "2.1.8",
 		"@vitest/ui": "2.1.8",
-		"prisma": "^6.4.0",
+		"eslint": "^8.57.1",
+		"eslint-plugin-unused-imports": "^3.1.0",
+		"prisma": "^6.5.0",
 		"supertest": "^7.0.0",
 		"tsup": "^8.3.5",
 		"tsx": "^4.19.1",
@@ -41,7 +47,7 @@
 		"@fastify/jwt": "^9.0.1",
 		"@fastify/swagger": "^9.0.0",
 		"@fastify/swagger-ui": "^5.0.1",
-		"@prisma/client": "^6.4.0",
+		"@prisma/client": "^6.5.0",
 		"bcrypt": "^5.1.1",
 		"dayjs": "^1.11.13",
 		"dotenv": "^16.4.5",
@@ -53,7 +59,12 @@
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [
-			"@prisma/client"
+			"@prisma/client",
+			"@prisma/engines",
+			"@swc/core",
+			"bcrypt",
+			"esbuild",
+			"prisma"
 		]
 	}
 }

@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { fastifyPlugin } from "fastify-plugin";
-import { UnauthorizedError } from "../controllers/_errors/unathorized-error";
+import { CustomError } from "../../../core/errors/custom-error";
 
 interface JwtVerifyResponse {
 	payload: { sub: string; scope: "pdvflow" | "pdvmobile" | "toten-auto" };
@@ -18,7 +18,7 @@ export const auth = fastifyPlugin(async (app: FastifyInstance) => {
 
 				return sub;
 			} catch {
-				throw new UnauthorizedError("Invalid auth token");
+				throw new CustomError(401, ["Token Inváldo"]);
 			}
 		};
 	});

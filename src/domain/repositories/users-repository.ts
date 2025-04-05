@@ -1,15 +1,7 @@
-export interface FindUserByEmailAndPasswordResponse {
-	RestaurantesUsuarios: {
-		Restaurantes: {
-			Id: string;
-		};
-	}[];
-}
+import { User, type UserProps } from "../entities/user";
 
 export interface UserRepository {
-	findUserByEmailAndPassword(
-		clientId: string,
-		clientSecret: string,
-		clientDocument: string
-	): Promise<FindUserByEmailAndPasswordResponse | null>;
+	create(user: UserProps): Promise<void>;
+	findByEmail(email: string): Promise<User | null>;
+	findByDocument(document: number): Promise<User | null>;
 }

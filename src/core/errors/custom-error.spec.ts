@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { CustomError } from "./custom-error"; // Ajuste o caminho conforme sua estrutura
+import { CustomError } from "./custom-error";
 
 describe("CustomError", () => {
 	it("should create an instance with a single string message", () => {

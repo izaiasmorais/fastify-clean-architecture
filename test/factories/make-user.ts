@@ -1,20 +1,16 @@
-import { User } from "../../src/domain/entities/user";
+import { User, UserProps } from "../../src/domain/entities/user";
 
-export function makeUser(override: Partial<User> = {}) {
-	const user: User = {
-		Email: "johndoe@example.com",
-		Senha: "123456",
-		RestaurantesUsuarios: [
-			{
-				Restaurantes: {
-					Id: 1,
-					CNPJ: "12345678901234",
-					Ativo: true,
-				},
-			},
-		],
+export function makeUser(override: Partial<UserProps> = {}) {
+	const user = User.create({
+		id: "1",
+		name: "John Doe",
+		email: "johndoe@example.com",
+		phone: 1234567890,
+		document: 12345678901,
+		password: "123456",
+		role: "COMPANY",
 		...override,
-	};
+	});
 
 	return user;
 }
