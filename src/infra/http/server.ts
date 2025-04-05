@@ -12,6 +12,7 @@ import {
 import { env } from "../env/env";
 import { errorHandler } from "./error-handler";
 import { signUp } from "./controllers/sign-up.controller";
+import { signIn } from "./controllers/sign-in.controller";
 
 const port = env.ENV_PORT;
 const version = "2.0.1 - Release 6";
@@ -50,6 +51,7 @@ app.register(fastifyJwt, {
 });
 
 app.register(signUp);
+app.register(signIn);
 
 const start = async () => {
 	try {
