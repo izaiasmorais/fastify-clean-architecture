@@ -1,7 +1,7 @@
 {
 	"name": "fastify-clean-architecture",
 	"version": "1.0.0",
-	"description": "Uma API autodocumentável construída com Fastify, utilizando arquitetura limpa, SOLID e DDD. Gerencia autenticação de usuários com foco em simplicidade e boas práticas.",
+	"description": "Uma API autodocumentável construída com Fastify, utilizando arquitetura limpa, SOLID e DDD.",
 	"main": "server.js",
 	"scripts": {
 		"dev": "tsx watch src/infra/http/server.ts",

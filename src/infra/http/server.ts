@@ -28,7 +28,7 @@ app.register(fastifyCors);
 app.register(fastifySwagger, {
 	openapi: {
 		info: {
-			title: `PlaSeg API - ${env.NODE_ENV} - [Version: ${version}]`,
+			title: `Fastify Clean Arc API - ${env.NODE_ENV} - [Version: ${version}]`,
 			description:
 				"Uma API autodocumentável construída com Fastify, utilizando arquitetura limpa, SOLID e DDD.",
 			version: version,

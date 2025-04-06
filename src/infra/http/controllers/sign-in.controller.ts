@@ -1,14 +1,8 @@
 import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { makeSignInUseCase } from "../../database/prisma/use-cases/make-sign-in-use-case";
-import {
-	defaultErrorResponseSchema,
-	defaultSuccessResponseSchema,
-} from "../schemas/http";
-import {
-	signInRequestBodySchema,
-	signInResponseSchema,
-} from "../schemas/sign-in";
+import { errorResponseSchema, successResponseSchema } from "../schemas/http";
+import { signInRequestBodySchema, signInResponseSchema } from "../schemas/auth";
 
 export async function signIn(app: FastifyInstance) {
 	app.withTypeProvider<ZodTypeProvider>().post(
@@ -20,10 +14,8 @@ export async function signIn(app: FastifyInstance) {
 				summary: "Authenticate a user",
 				body: signInRequestBodySchema.describe("Sign in request body"),
 				response: {
-					200: defaultSuccessResponseSchema(signInResponseSchema).describe(
-						"Success"
-					),
-					400: defaultErrorResponseSchema.describe("Bad Request"),
+					200: successResponseSchema(signInResponseSchema).describe("Success"),
+					400: errorResponseSchema.describe("Bad Request"),
 				},
 			},
 		},

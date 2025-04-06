@@ -1,8 +1,6 @@
 import { z } from "zod";
 
-export const defaultSuccessResponseSchema = <T extends z.ZodTypeAny>(
-	dataSchema?: T
-) =>
+export const successResponseSchema = <T extends z.ZodTypeAny>(dataSchema?: T) =>
 	z
 		.object({
 			success: z.literal(true),
@@ -11,8 +9,10 @@ export const defaultSuccessResponseSchema = <T extends z.ZodTypeAny>(
 		})
 		.describe("Success");
 
-export const defaultErrorResponseSchema = z.object({
-	success: z.literal(false),
-	errors: z.array(z.string()),
-	data: z.null(),
-});
+export const errorResponseSchema = z
+	.object({
+		success: z.literal(false),
+		errors: z.array(z.string()),
+		data: z.null(),
+	})
+	.describe("Error");

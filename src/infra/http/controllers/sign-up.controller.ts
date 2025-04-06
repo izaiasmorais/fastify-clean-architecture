@@ -1,10 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { makeSignUpUseCase } from "../../database/prisma/use-cases/make-sign-up-use-case";
-import {
-	defaultErrorResponseSchema,
-	defaultSuccessResponseSchema,
-} from "../schemas/http";
+import { errorResponseSchema, successResponseSchema } from "../schemas/http";
 import { signUpRequestBodySchema } from "../schemas/sign-up";
 import { z } from "zod";
 
@@ -18,8 +15,8 @@ export async function signUp(app: FastifyInstance) {
 				summary: "Register a new user",
 				body: signUpRequestBodySchema.describe("Sign up request body"),
 				response: {
-					201: defaultSuccessResponseSchema(z.null()).describe("Created"),
-					400: defaultErrorResponseSchema.describe("Bad Request"),
+					201: successResponseSchema(z.null()).describe("Created"),
+					400: errorResponseSchema.describe("Bad Request"),
 				},
 			},
 		},
