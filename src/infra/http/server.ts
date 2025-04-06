@@ -1,14 +1,14 @@
-import fastify from "fastify";
-import fastifyCors from "@fastify/cors";
-import fastifySwagger from "@fastify/swagger";
-import fastifyJwt from "@fastify/jwt";
-import fastifySwaggerUI from "@fastify/swagger-ui";
 import {
 	jsonSchemaTransform,
 	serializerCompiler,
 	validatorCompiler,
 	ZodTypeProvider,
 } from "fastify-type-provider-zod";
+import fastify from "fastify";
+import fastifyCors from "@fastify/cors";
+import fastifySwagger from "@fastify/swagger";
+import fastifyJwt from "@fastify/jwt";
+import fastifySwaggerUI from "@fastify/swagger-ui";
 import { env } from "../env/env";
 import { errorHandler } from "./error-handler";
 import { signUp } from "./controllers/sign-up.controller";
@@ -16,7 +16,8 @@ import { signIn } from "./controllers/sign-in.controller";
 import { getProfile } from "./controllers/get-profile.controller";
 
 const port = env.ENV_PORT;
-const version = "1.0.0 - Release 6";
+
+const version = "1.0.0 - Release 5";
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
@@ -29,7 +30,7 @@ app.register(fastifySwagger, {
 		info: {
 			title: `PlaSeg API - ${env.NODE_ENV} - [Version: ${version}]`,
 			description:
-				"Esta API é responsável por sincronizar os dados do Nebula com os sistemas de gestão.",
+				"Uma API autodocumentável construída com Fastify, utilizando arquitetura limpa, SOLID e DDD.",
 			version: version,
 		},
 		components: {
