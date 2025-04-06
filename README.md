@@ -33,13 +33,13 @@ git clone https://github.com/izaiasmorais/fastify-clean-architecture
 cd fastify-clean-architecture
 ```
 
-## Instale as dependências:
+Instale as dependências:
 
 ```bash
 pnpm install
 ```
 
-## Configure o arquivo .env com suas credenciais (baseado no .env.example):
+Configure o arquivo .env com suas credenciais (baseado no .env.example):
 
 ```env
 NODE_ENV=development
@@ -50,7 +50,7 @@ DATABASE_URL=
 
 # Executando o Projeto
 
-## Inicie o servidor:
+Inicie o servidor:
 
 ```bash
 pnpm dev
