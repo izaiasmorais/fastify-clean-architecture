@@ -1,7 +1,7 @@
 {
-	"name": "sicronizador-nebula",
+	"name": "fastify-clean-architecture",
 	"version": "1.0.0",
-	"description": "Esta API é responsável por sincronizar os dados do Nebula com os sistemas de gestão.",
+	"description": "A clean architecture project using Fastify, Prisma, and TypeScript",
 	"main": "server.js",
 	"scripts": {
 		"dev": "tsx watch src/infra/http/server.ts",

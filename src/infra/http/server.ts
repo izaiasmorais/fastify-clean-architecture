@@ -16,7 +16,7 @@ import { signIn } from "./controllers/sign-in.controller";
 import { getProfile } from "./controllers/get-profile.controller";
 
 const port = env.ENV_PORT;
-const version = "2.0.1 - Release 6";
+const version = "1.0.0 - Release 6";
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
@@ -27,7 +27,7 @@ app.register(fastifyCors);
 app.register(fastifySwagger, {
 	openapi: {
 		info: {
-			title: `Sincronizador Nebula - ${env.NODE_ENV} - [Version: ${version}]`,
+			title: `PlaSeg API - ${env.NODE_ENV} - [Version: ${version}]`,
 			description:
 				"Esta API é responsável por sincronizar os dados do Nebula com os sistemas de gestão.",
 			version: version,

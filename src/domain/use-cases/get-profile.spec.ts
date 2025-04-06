@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { InMemoryUsersRepository } from "../../../test/repositories/in-memory-users-repository";
 import { GetProfileUseCase } from "./get-profile";
-import { User } from "../entities/user";
+import { User, UserRole } from "../entities/user";
 
 let inMemoryUserRepository: InMemoryUsersRepository;
 let sut: GetProfileUseCase;
@@ -17,10 +17,12 @@ describe("Get Profile Use Case", () => {
 			id: "user-1",
 			name: "John Doe",
 			email: "johndoe@example.com",
-			phone: 123456789,
-			document: 123456789,
+			phone: "123456789",
+			document: "123456789",
 			password: "123456",
-			role: "COMPANY",
+			role: UserRole.COMPANY,
+			createdAt: new Date(),
+			updatedAt: null,
 		});
 
 		await inMemoryUserRepository.create(user);

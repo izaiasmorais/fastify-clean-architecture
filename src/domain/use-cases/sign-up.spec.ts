@@ -3,6 +3,7 @@ import { InMemoryUsersRepository } from "../../../test/repositories/in-memory-us
 import { FakeHasher } from "../../../test/cryptography/fake-hasher";
 import { SignUpUseCase } from "./sign-up";
 import { makeUser } from "../../../test/factories/make-user";
+import { UserRole } from "../entities/user";
 
 let inMemoryUsersRepository: InMemoryUsersRepository;
 let fakeHasher: FakeHasher;
@@ -19,10 +20,10 @@ describe("Sign Up Use Case", () => {
 		const user = makeUser({
 			name: "John Doe",
 			email: "johndoe@example.com",
-			phone: 1234567890,
-			document: 12345678901,
+			phone: "1234567890",
+			document: "12345678901",
 			password: "123456",
-			role: "COMPANY",
+			role: UserRole.COMPANY,
 		});
 
 		const result = await sut.execute({
@@ -51,10 +52,10 @@ describe("Sign Up Use Case", () => {
 		const result = await sut.execute({
 			name: "John Doe",
 			email: "johndoe@example.com",
-			phone: 1234567890,
-			document: 12345678901,
+			phone: "1234567890",
+			document: "12345678901",
 			password: "123456",
-			role: "COMPANY",
+			role: UserRole.COMPANY,
 		});
 
 		expect(result.isLeft()).toBeTruthy();
@@ -67,7 +68,7 @@ describe("Sign Up Use Case", () => {
 
 	it("should not be able to sign up with existing document", async () => {
 		const existingUser = makeUser({
-			document: 12345678901,
+			document: "12345678901",
 		});
 
 		await inMemoryUsersRepository.create(existingUser);
@@ -75,10 +76,10 @@ describe("Sign Up Use Case", () => {
 		const result = await sut.execute({
 			name: "John Doe",
 			email: "different@example.com",
-			phone: 1234567890,
-			document: 12345678901,
+			phone: "1234567890",
+			document: "12345678901",
 			password: "123456",
-			role: "COMPANY",
+			role: UserRole.COMPANY,
 		});
 
 		expect(result.isLeft()).toBeTruthy();

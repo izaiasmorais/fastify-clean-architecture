@@ -1,16 +1,44 @@
-import { User as PrismaUser, Prisma } from "@prisma/client";
-import { User, type UserRole } from "../../../../domain/entities/user";
+import {
+	Prisma,
+	User as PrismaUser,
+	UserRole as PrismaUserRole,
+} from "@prisma/client";
+import { User, UserRole } from "../../../../domain/entities/user";
 
 export class PrismaUserMapper {
+	private static mapRole(prismaRole: PrismaUserRole): UserRole {
+		const roleMapping = {
+			ADMIN: UserRole.ADMIN,
+			COMPANY: UserRole.COMPANY,
+			CONSULTANT: UserRole.CONSULTANT,
+			CITY: UserRole.CITY,
+		};
+
+		return roleMapping[prismaRole];
+	}
+
+	private static mapToPrismaRole(domainRole: UserRole): PrismaUserRole {
+		const roleMapping = {
+			[UserRole.ADMIN]: "ADMIN" as PrismaUserRole,
+			[UserRole.COMPANY]: "COMPANY" as PrismaUserRole,
+			[UserRole.CONSULTANT]: "CONSULTANT" as PrismaUserRole,
+			[UserRole.CITY]: "CITY" as PrismaUserRole,
+		};
+
+		return roleMapping[domainRole];
+	}
+
 	static toDomain(raw: PrismaUser): User {
 		return User.create({
 			id: raw.id,
-			document: parseInt(raw.document.toString()),
 			email: raw.email,
 			password: raw.password,
 			name: raw.name,
-			phone: parseInt(raw.phone.toString()),
-			role: raw.role as UserRole,
+			document: raw.document,
+			phone: raw.phone,
+			role: this.mapRole(raw.role),
+			createdAt: raw.createdAt,
+			updatedAt: raw.updatedAt,
 		});
 	}
 
@@ -22,7 +50,7 @@ export class PrismaUserMapper {
 			password: user.password,
 			name: user.name,
 			phone: user.phone,
-			role: user.role as UserRole,
+			role: this.mapToPrismaRole(user.role),
 		};
 	}
 }

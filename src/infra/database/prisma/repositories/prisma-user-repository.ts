@@ -32,7 +32,7 @@ export class PrismaUserRepository implements UserRepository {
 		return PrismaUserMapper.toDomain(user);
 	}
 
-	async findByDocument(document: number): Promise<User | null> {
+	async findByDocument(document: string): Promise<User | null> {
 		const user = await prisma.user.findUnique({
 			where: {
 				document,

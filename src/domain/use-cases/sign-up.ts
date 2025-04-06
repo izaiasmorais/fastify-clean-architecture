@@ -1,18 +1,18 @@
-import { User, type UserRole } from "../entities/user";
+import { User, UserProps, UserRole } from "../entities/user";
 import { UserRepository } from "../repositories/users-repository";
 import { Either, left, right } from "../../core/types/either";
 import { CustomError } from "../../core/errors/custom-error";
 import { randomUUID } from "crypto";
-import type { HashGenerator } from "../cryptography/hash-generator";
+import { HashGenerator } from "../cryptography/hash-generator";
 
-interface SignUpUseCaseRequest {
+type SignUpRequest = {
 	name: string;
 	email: string;
-	phone: number;
-	document: number;
+	phone: string;
+	document: string;
 	password: string;
-	role: UserRole;
-}
+	role: string;
+};
 
 type SignUpUseCaseResponse = Either<CustomError, null>;
 
@@ -22,7 +22,7 @@ export class SignUpUseCase {
 		private hashGenerator: HashGenerator
 	) {}
 
-	async execute(request: SignUpUseCaseRequest): Promise<SignUpUseCaseResponse> {
+	async execute(request: SignUpRequest): Promise<SignUpUseCaseResponse> {
 		const userWithSameEmail = await this.userRepository.findByEmail(
 			request.email
 		);
@@ -42,9 +42,12 @@ export class SignUpUseCase {
 		const hashedPassword = await this.hashGenerator.hash(request.password);
 
 		const user = User.create({
-			id: randomUUID(),
 			...request,
+			id: randomUUID(),
 			password: hashedPassword,
+			createdAt: new Date(),
+			updatedAt: null,
+			role: UserRole[request.role],
 		});
 
 		await this.userRepository.create(user);

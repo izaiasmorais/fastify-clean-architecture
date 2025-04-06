@@ -1,15 +1,22 @@
 import { Entity } from "../../core/entities/entity";
 
-export type UserRole = "COMPANY" | "CONSULTANT" | "CITY";
+export enum UserRole {
+	ADMIN = "ADMIN",
+	COMPANY = "COMPANY",
+	CONSULTANT = "CONSULTANT",
+	CITY = "CITY",
+}
 
 export interface UserProps {
 	id: string;
 	name: string;
 	email: string;
-	phone: number;
-	document: number;
+	phone: string;
+	document: string;
 	password: string;
 	role: UserRole;
+	createdAt: Date;
+	updatedAt: Date | null;
 }
 
 export class User extends Entity<UserProps> {
@@ -41,8 +48,17 @@ export class User extends Entity<UserProps> {
 		return this.props.role;
 	}
 
+	get createdAt() {
+		return this.props.createdAt;
+	}
+
+	get updatedAt() {
+		return this.props.updatedAt;
+	}
+
 	static create(props: UserProps) {
 		const user = new User(props);
+
 		return user;
 	}
 }
