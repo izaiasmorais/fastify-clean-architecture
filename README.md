@@ -16,6 +16,39 @@ Uma API autodocumentável construída com Fastify, utilizando arquitetura limpa,
 - Linter: [ESLint](https://eslint.org)
 - Testes: [Vitest](https://vitest.dev)
 
+## Estrutura do Projeto
+
+- prisma/ - Configuração do Prisma ORM para gerenciamento do banco de dados.
+- src/ - Código-fonte principal da aplicação.
+  - core/ - Componentes centrais e reutilizáveis.
+    - entities/ - Definições de entidades "core" que serão usadas no domínio.
+    - errors/ - Gerenciamento de erros personalizados.
+    - types/ - Definições de tipos TypeScript.
+    - utils/ - Funções utilitárias e helpers.
+  - domain/ - Lógica de negócio e regras do domínio.
+    - cryptography/ - Abstrações das classes que envolvem criptografia.
+    - entities/ - Entidades específicas do domínio.
+    - repositories/ - Interfaces de repositórios para acesso a dados.
+    - use-cases/ - Casos de uso que implementam a lógica de negócio.
+  - infra/ - Camada de infraestrutura e integrações externas.
+    - adapters/ - Adaptadores para conectar domínio e infraestrutura.
+    - database/prisma/ - Implementações específicas do Prisma.
+      - mappers/ - Mapeamento entre modelos de dados e entidades.
+      - repositories/ - Implementações concretas de repositórios.
+      - use-cases/ - Casos de uso adaptados para infraestrutura.
+      - prisma.ts - Configuração e inicialização do Prisma Client.
+    - env/ - Configurações de variáveis de ambiente.
+    - http/ - Configurações relacionadas à API HTTP.
+      - controllers/ - Controladores para lidar com requisições HTTP.
+      - middleware/ - Middlewares para processamento de requisições.
+      - schemas/ - Esquemas de validação de dados.
+      - error-handler.ts - Manipulação centralizada de erros HTTP.
+      - server.ts - Inicialização e configuração do servidor Fastify.
+  - test/ - Pasta que gerencia os arquivos necessários para a execução dos testes.
+    - cryptography/ - Classes que simulam as funcionalidades de criar token e criptografar e comparar senhas criptografas.
+    - factories/ - Funções que criam "mocks" das entidades para serem utilizadas nos testes.
+    - repositories/ - Repositórios em memória para serem utilizados nos testes.
+
 ## Endpoints
 
 | Método   | Endpoint         | Descrição                                   |
@@ -54,4 +87,18 @@ Inicie o servidor:
 
 ```bash
 pnpm dev
+```
+
+# Executando os Testes
+
+Testes unitários:
+
+```bash
+pnpm test
+```
+
+Testes E2E:
+
+```bash
+pnpm test:e2e
 ```
