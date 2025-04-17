@@ -118,3 +118,6 @@ dist
 # package-lock
 
 package-lock.json
+
+# Docker
+data

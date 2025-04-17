@@ -83,6 +83,10 @@ DATABASE_URL=
 
 # Executando o Projeto
 
+Gere o schema do prisma:
+
+
+
 Inicie o servidor:
 
 ```bash

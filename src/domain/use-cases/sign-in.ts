@@ -9,6 +9,7 @@ interface SignInUseCaseRequest {
 	password: string;
 }
 
+// either = qualquer um
 type SignInUseCaseResponse = Either<
 	CustomError,
 	{
@@ -33,12 +34,12 @@ export class SignInUseCase {
 			return left(new CustomError(400, "Credenciais inválidas"));
 		}
 
-		const passwordMatches = await this.hashComparer.compare(
+		const isPasswordValid = await this.hashComparer.compare(
 			password,
 			user.password
 		);
 
-		if (!passwordMatches) {
+		if (!isPasswordValid) {
 			return left(new CustomError(400, "Credenciais inválidas"));
 		}
 

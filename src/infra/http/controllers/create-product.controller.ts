@@ -1,20 +1,23 @@
 import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
-import { makeSignUpUseCase } from "../../database/prisma/use-cases/make-sign-up-use-case";
+import { makeCreateProductUseCase } from "../../database/prisma/use-cases/make-create-product-use-case";
 import { errorResponseSchema, successResponseSchema } from "../schemas/http";
-import { signUpRequestBodySchema } from "../schemas/auth";
+import { createProductRequestBodySchema } from "../schemas/product";
 import { z } from "zod";
+import { verifyJwt } from "../middleware/auth";
 
-export async function signUp(app: FastifyInstance) {
+export async function createProduct(app: FastifyInstance) {
 	app.withTypeProvider<ZodTypeProvider>().post(
-		"/auth/sign-up",
+		"/products",
 		{
+			onRequest: [verifyJwt],
 			schema: {
-				tags: ["Auth"],
-				operationId: "signUp",
-				summary: "Register a new user",
-				security: [{ bearerAuth: [] }],
-				body: signUpRequestBodySchema.describe("Sign up request body"),
+				tags: ["Products"],
+				operationId: "createProduct",
+				summary: "Create a new product",
+				body: createProductRequestBodySchema.describe(
+					"Create product request body"
+				),
 				response: {
 					201: successResponseSchema(z.null()).describe("Created"),
 					400: errorResponseSchema.describe("Bad Request"),
@@ -22,11 +25,11 @@ export async function signUp(app: FastifyInstance) {
 			},
 		},
 		async (request, reply) => {
-			const body = signUpRequestBodySchema.parse(request.body);
+			const body = createProductRequestBodySchema.parse(request.body);
 
-			const signUpUseCase = makeSignUpUseCase();
+			const createProductUseCase = makeCreateProductUseCase();
 
-			const response = await signUpUseCase.execute(body);
+			const response = await createProductUseCase.execute(body);
 
 			if (response.isLeft()) {
 				return reply.status(response.value.statusCode).send({

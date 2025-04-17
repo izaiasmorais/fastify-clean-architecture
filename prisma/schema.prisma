@@ -27,3 +27,15 @@ model User {
 
   @@map("users")
 }
+
+model Product {
+  id        String  @id @default(uuid())
+  code      String  @unique
+  name      String
+  unitPrice Decimal
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("products")
+}

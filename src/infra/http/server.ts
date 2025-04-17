@@ -14,6 +14,7 @@ import { errorHandler } from "./error-handler";
 import { signUp } from "./controllers/sign-up.controller";
 import { signIn } from "./controllers/sign-in.controller";
 import { getProfile } from "./controllers/get-profile.controller";
+import { createProduct } from "./controllers/create-product.controller";
 
 const port = env.ENV_PORT;
 
@@ -55,6 +56,7 @@ app.register(fastifyJwt, {
 app.register(signUp);
 app.register(signIn);
 app.register(getProfile);
+app.register(createProduct);
 
 const start = async () => {
 	try {
