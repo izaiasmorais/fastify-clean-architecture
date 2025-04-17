@@ -78,14 +78,28 @@ Configure o arquivo .env com suas credenciais (baseado no .env.example):
 NODE_ENV=development
 ENV_EXPIRES_IN=10000
 ENV_PORT=3333
-DATABASE_URL=
+DATABASE_URL=postgresql://postgres:docker@localhost:5432/fastify
 ```
 
 # Executando o Projeto
 
+Rode o banco postgres no docker (caso não já possua um postgres em outro serviço):
+
+```bash
+docker compose up -d
+```
+
+Suba as migrações para o banco:
+
+```bash
+pnpm migrate
+```
+
 Gere o schema do prisma:
 
-
+```bash
+pnpm generate
+```
 
 Inicie o servidor:
 

@@ -15,6 +15,7 @@ import { signUp } from "./controllers/sign-up.controller";
 import { signIn } from "./controllers/sign-in.controller";
 import { getProfile } from "./controllers/get-profile.controller";
 import { createProduct } from "./controllers/create-product.controller";
+import { listProducts } from "./controllers/list-products.controller";
 
 const port = env.ENV_PORT;
 
@@ -57,6 +58,7 @@ app.register(signUp);
 app.register(signIn);
 app.register(getProfile);
 app.register(createProduct);
+app.register(listProducts);
 
 const start = async () => {
 	try {

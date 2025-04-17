@@ -25,6 +25,8 @@ export async function createProduct(app: FastifyInstance) {
 			},
 		},
 		async (request, reply) => {
+			const role = request.user.role
+
 			const body = createProductRequestBodySchema.parse(request.body);
 
 			const createProductUseCase = makeCreateProductUseCase();

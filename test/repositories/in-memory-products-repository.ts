@@ -27,4 +27,8 @@ export class InMemoryProductsRepository implements ProductsRepository {
 
 		return product;
 	}
+
+	async findMany(): Promise<Product[]> {
+		return this.products;
+	}
 }
